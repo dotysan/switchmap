@@ -1,0 +1,70 @@
+#!/bin/bash
+
+#
+# Josh Malone's (jmalone@nrao.edu) daemon process to run SwitchMap
+# and accept requests for manual refresh from the web interface.
+#
+
+PREFIX=/opt/services/switchmap-dev
+LOG=${PREFIX}/web/error-log
+
+# How often to update the web page - in minutes
+OFTEN=60
+
+# Sleep period, in seconds - don't change 
+SLEEPVAL=10
+
+# The progress message to include on the web page
+PROGMSG='<span style="background: #dd1111;">&nbsp; Update in progress &nbsp;</span><br>'
+
+# Figure out the last time the web page was updated
+last=$(stat -c %Z ${PREFIX}/web/index.html)
+
+# Figure out what time it is now
+now=$(date +%s)
+
+echo $$ > /var/run/switchmap.pid
+trap 'rm -f /var/run/switchmap.pid; exit' 0
+trap 'rm -f /var/run/switchmap.pid; exit' 3
+trap 'rm -f /var/run/switchmap.pid; exit' 15
+
+# Remove stale killfile
+rm -f /tmp/kill-switchmap
+
+##################### Main loop
+
+while :
+do
+ elapsed=$(( (now - last) / 60 ))
+
+ [ -f /tmp/update-switchmap ] && echo "$PROGMSG" > ${PREFIX}/web/status.html
+
+ # Run the small jobs every 60 mins, regardless
+ if [ $elapsed -gt 60 -o -f /tmp/update-switchmap ]; then
+	# Re-initialize the logfile
+	echo "Updating SwitchMap at $(date)" >$LOG
+	${PREFIX}/GetArp.pl 2>>$LOG >>$LOG
+ 	${PREFIX}/ScanSwitch.pl 2>>$LOG >>$LOG
+	now=$((now + 5))
+	last=$now
+	# echo " done"
+ fi
+
+ # See if we should update the web page, too
+ if [ $elapsed -gt ${OFTEN:-60} -o -f /tmp/update-switchmap ]; then
+ echo "$PROGMSG" > ${PREFIX}/web/status.html
+	${PREFIX}/SwitchMap.pl 2>>$LOG >>$LOG
+	now=$(date +%s)
+	last=$now
+	rm -f /tmp/update-switchmap
+	echo -n '' > ${PREFIX}/web/status.html
+ fi
+
+ if [ -f /tmp/kill-switchmap ]; then
+	rm -f /tmp/kill-switchmap
+	exit
+ fi
+ sleep ${SLEEPVAL:=10}
+ now=$(( now + SLEEPVAL ))
+
+done

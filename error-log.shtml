@@ -1,0 +1,21 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+<meta Http-Equiv="Cache-Control" Content="no-cache">
+<meta Http-Equiv="Pragma" Content="no-cache">
+<meta Http-Equiv="Cache-Control:" max-age="0">
+<meta Http-Equiv="Expires" Content="-100">
+<title>Switchmap Error Log</title>
+<link href="/nets/internal/portists/SwitchMap.css" rel="stylesheet">
+</head>
+<body>
+
+<h3>SwitchMap Error Log from <!--#flastmod file="error-log"--></h3>
+<pre>
+<!--#include file="error-log"-->
+</pre>
+
+<a href="/nets/portlists/">Back to SwitchMap</a>
+
+</body>
+</html>

@@ -1,0 +1,907 @@
+# Change log for the SwitchMap program, which is available at
+# http://sourceforge.net/projects/switchmap/
+#
+
+# Version 13.1, February 5, 2014
+Added the @LocalSwitchTrunkPorts array to ThisSite.pm.  This provides
+  a somewhat klunky work-around for people that have certain switches
+  (i.e. Junipers and Cisco 3845s).  These switches don't provide a
+  way for SwitchMap to identify trunk (uplink) ports via SNMP.  For
+  these switches, SwitchMap produces web pages with long lists of MAC
+  addresses on those ports, instead of "trunk port".  If you have
+  this problem, read the comment that accompanies
+  @LocalSwitchTrunkPorts in ThisSite.default.pm.
+Removed the "search networks" button, which was only meaningful
+  at my site.
+ Uncommented and corrected some old code to support Foundry switches.
+  Still needs work.  Thanks to Andrew Struiksma for providing access
+  to Foundry devices for testing.
+In GetVlansOnPorts, added spaces after VLAN numbers on trunk ports,
+  to allow long lists of VLANs on trunk ports to wrap when the
+  window is resized.
+Applied changes to improve support for HP switches.  Thanks to
+  Nancy Greenblatt and Jeremy Lunsford.
+Fixed UpdateOuiCodes.pl to handle the changed format of the IEEE
+  oui.txt file, and to be more resilient to such changes in the
+  future.
+Updated the oui.txt file with the latest version from the IEEE, and
+  ran UpdateOuiCodes to update the OuiCodes.txt file.
+
+
+# Version 13.0, Feb 5, 2013
+Major version bump because I added code to read MAC and VLAN data from
+  Q-Bridge MIBs.  This enables SwitchMap to handle devices from
+  vendors other than Cisco.  I've tested it on Juniper EX2200, EX8200,
+  MX480 and QFX3500s.  Unfortunately, SwitchMap doesn't detect
+  trunking correctly on some of these devices.  Baby steps :-)
+Added GetMacsFromQBridgeMib.pm.
+Refactored MAC-fetching code out of PopulatePorts.pm into
+  GetMacsFromCiscoMibs.pm.  Still leaves over 1000 lines in
+  PopulatePorts.pm.  Oh well.
+Added WritePLookupDirectory.pm, which isn't useful outside my site.
+Added GetVlansOnPorts.pm and some other code to show VLANs that are
+  defined on trunk ports.  Very nice, thanks to Guus Houtzager.
+Increased the buffer size on SNMP calls by adding
+  "-maxmsgsize => 5000" to calls to Net::SNMP->session.  Thanks
+  to spegghy69.
+In SwitchUtils::GetWhatViaCdp, add 2 lines to delete imbedded
+  newlines and carriage returns from the strings learned via CDP.
+  Thanks to PCL.
+Modified PopulatePorts.pm and a few others to handle switches that
+  support the Cisco STACK MIB, but only partially.  This means the
+  code now handles Cisco ME3600s.  Thanks to Imran Malik.
+
+# Version 12.5, Jun 26, 2012
+Changed Stats.pm so that it doesn't count ancillary ports towards
+  the "active ports" total.  This lowers the number of active ports
+  reported on the Statistics page.
+Changed Stats.pm to add a new table named "Switch Details".  It
+  shows the active, inactive, disabled and total port counts for
+  each individual switch.  Handy for explaining where the counts
+  in the "Port by State" table came from.
+Changed GetIsPortTrunking to fix trunk detection of port channels
+  on 3560s, which can have inconsistent "admin" and "oper" tables.
+Changed GetIsPortTrunking to fix bug about "admin" vs. "oper"
+  tables.  Thanks to Wolfgang Steudel.
+Changed FindOffice.pl to make it correctly recognize MAC addresses
+  of the form nnnn.nnnn.nnnn
+Fixed a syntax bug in WritePoePortsFile.pm, in
+  BuildApprovedManufacturersTable.  Thanks to Dan Thorson.
+
+# Version 12.4, February 22, 2012
+Changed PopulatePorts.pm so that if a switch has CDP disabled, the
+  code won't skip the switch entirely.  Thanks to Isendel Steel.
+
+# Version 12.3, February 9, 2012
+Lots of changes to make better use of CSS.  Changed the alignment of
+  some columns from "center" to "left", show MAC addresses in a
+  fixed-width font, fix some redundancies, other stuff.
+Made SwitchMap filter carriage-returns and line-feeds out of
+  port label fields.  Some switches have CRs in the label fields,
+  which screws up FindOffice.pl.  Thanks to DidierJ.
+Added $ShowCdpNames to ThisSite.pm.  Thanks to Dan Thorson.
+Added some port types to the Virtual Ports list.
+When a routed port is inactive or disabled, show the VLAN number
+  instead of 'routed'.  Thanks to Petr Cech.
+Fixed problem with some switches reporting of
+  pethPsePortDetectionStatus.
+Changed the way CSV files are written.  Now, CSV files get the
+  information for all ports, including inactive and trunk ports.
+  There is a new variable in ThisSite.pm named
+  $ShowOnlyActiveNonTrunkPortsInCsv that you can set to restore the
+  old behavior.
+Added a new option for specifying approved PoE devices.  Now you can
+  use the %ManufacturersApprovedForPoe hash in ThisSite.pm to specify
+  a set of manfacturer codes that are approved for PoE.  Thanks to Jeff
+  Cook.
+Added ReadArpWatchFile function to GetArp.pl.  If you enable it by
+  turning on the $ArpWatchFile variable in ThisSite.pm, you get better
+  ARP data in your MacList file.  Thanks to pklausner.
+Modified FindOffice.pl so that when it outputs CSV format, it replaces
+  commas in the data (like, in the manufacturer field) with spaces.
+Refactored GetIsPortTrunking.pl.  It now correctly recognizes port
+  channels that are trunking, avoiding the issue of having hundreds
+  of MACs show up on "virtual ports".
+Added code to color non-trunk ports that have more than a given number
+  of MAC addresses.  This is controlled by a new variable in
+  ThisSite.pm named $PortMacLimit, which is set to a high value by
+  default.  You have to lower the value to "turn on" the feature.  See
+  ThisSite.default.pm for more information.  Thanks to Shawn
+  H. (djmoisture).
+
+
+# Version 12.2, October 25, 2010
+Fixed a problem in WriteSwitchesDirectory.pl that caused
+  "0 in hash ref" errors if you use the "---title" lines feature.
+  Thanks to Mark Dauven.
+
+# Version 12.1, October 19, 2010
+Modified FindOffice.pl to skip virtual ports, and changed the text in
+  SearchPortlists.html to explain the change.
+Fixed copy mistake that caused ThisSite.pm to have $ARP_MAC_LIMIT
+  instead of $ArpMacLimit.
+Refactored BuildSections in WriteSwitchesDirectory.
+
+# Version 12.0, October 12, 2010
+Added code to display virtual ports, like VLAN subinterfaces, which
+  SwitchMap used to ignore.
+Added code to get ARP cache information.  SwitchMap already did this
+  for "routers" via GetArp.pl, in order to get Mac-to-IP address
+  mapping.  Now SwitchMap.pl gets ARP information (if there is any)
+  from each switch, so it can show information for Layer 3 ports.
+  This reduces the occurrence of "port is active, but no packets have
+  been seen recently" messages.  At my site, I now see more MAC and
+  label information.  Layer 3 ports may have hundreds of ARP entries,
+  so to avoid too much output SwitchMap doesn't display MAC
+  information when a port has more than 10 MACs (controlled by a new
+  configuration variable ARP_MAC_LIMIT in Constants.pm).
+SwitchMap used to ignore some "ports" that switches report, because
+  the ports seem to be useless clutter.  This cleaned up the output
+  tables.  The decision about what ports to ignore was somewhat
+  arbitrary, and based on port names.  I got nervous that I might
+  accidentally ignore ports that are meaningful, so I decided to show
+  these ports in their own table.  I put the 'Ancillary Ports' table
+  at the bottom of the page.
+Modified the output routines to reduce the occurrence of "port is
+  active, but no packets have been seen recently" messages.  Now,
+  the message will appear only if there are no MACs and if the port is
+  of type Ethernet.  If it's not of type Ethernet, the field is now
+  blank, which is better than the misleading message.
+Rewrote the cached community string handling, which was broken in more
+  than one way, though it mostly worked.  It's much healthier now.
+  Thanks to Alexander Clouter.
+Minor change to make some warnings into errors so that they display
+  regardless of the "-d" and "-i" command-line settings.
+Enhanced PopulateEtherchannels.pm to make it ignore bogus
+  ifStackStatus tables that are returned by at least some 3845s.
+  The tables list etherchannels with one parent and only one child.
+  The new code ignores such "etherchannels".
+Modified FindOffice.pl to use Sys:HostName to get the name of the
+  system.  Before, I used "uname -n", which won't work on Windows.
+  Thanks to ckrausse.
+Refactored WritePoePortsFile.pm to add support for a list of approved
+  MACs as well as approved devices.  This is to support devices that
+  don't tell the Cisco switch their device type when they are
+  negotiating POE delivery.  Mostly useful at my site.
+Fixed syntax errors in SwitchMap.css, to restore highlighting of
+  found strings when searching the portlists with FindOffice.
+Changed the output to distinguish routing ports from switching ports.
+  Now, in the "VLAN" column, routing ports say "routed".  This is
+  similar to the way Cisco does it in "show interfaces status"
+  commands.
+
+# Version 11.22, April 26, 2010
+Added a test to make sure that WriteSuspiciousPortsFile is only called
+  if SwitchMap is being excuted at NCAR.
+Fixed a problem introduced in 11.21 which caused SwitchMap.pl to
+  handle auxiliary VLANs incorrectly, causing ports connected to Cisco
+  phones to show only the device attached to the phone and not the
+  phone itself.
+Added code to generate switch group names in the switches index.html
+  file based on patterns in switch names.  See the documentation
+  around the $UseGroups variable in ThisSite.default.pm.  Thanks to
+  Dan Thorson.
+Fixed a bug handling Duplex strings in PopulatePorts.pm.  Thanks to
+  Jesse Becker.
+
+# Version 11.21, April, 2010
+You can now add title cells to the @LocalSwitches list in your
+  ThisSite.pm file.  Title cells let you dress up the list of switches
+  generated by SwitchMap.pl, typically by making named sets of
+  switches.  For example, you might make a set of switches in each of
+  your buildings, with a title cell containing the name of the
+  building.  See ThisSite.default.pm for details of how to use title
+  cells.  Thanks to Dan Thorson for the idea.
+Changed the way the code handles a VLAN assigned to a port if the VLAN
+  isn't defined in the switch.  Before, I stopped processing the
+  switch and moved on to the next VLAN.  Now, I report it and move on
+  to the next VLAN on the same switch.  This means SwitchMap handles
+  VLAN 1 better on some switches.
+Fixed a bug in duplex reporting in 2900 switches.  Thanks to Shawn
+  Henry for yet another bugfix!
+Fixed broken relative links in output files.  I wasn't handling
+  directory references correctly when I created convenience links to
+  VLAN files and switch files.  As part of this work, I refactored
+  WriteHtmlRow in SwitchUtils.pm into several smaller pieces to make
+  it easier to understand.
+Added WriteSuspiciousPorts.pm, which writes a new web page that lists
+  ports that don't fit local policy.  At my site, I list ports that
+  have labels (names) that indicate that they are in a different
+  building than the building that houses the switch.  Such labels are
+  probably incorrect.  This module also lists ports that have the
+  special label "BAD PORT".  This code is of value only at my site, so
+  in the distribution, it's not generated by default.
+Updated the CISCO-PRODUCTS-MIB.my, CISCO-ENTITY-VENDORTYPE-OID-MIB.my,
+  and CISCO-STACK-MIB.my files with the latest versions from Cisco.
+Updated the oui.txt file with the latest version from the IEEE, and
+  ran UpdateOuiCodes to update the OuiCodes.txt file.
+Updated PopulatePorts.pm so odd ports (like sup-fc0 on nexus switches)
+  don't cause "uninitialized value" errors because they don't have an
+  admin status.
+
+# Version 11.20, Dec 24, 2009
+Changed the code in PopulatePorts that fetches port duplex values.
+  Now, it saves more detailed information for some switches.  For
+  example, for a 3650 switch, it used to show "auto" to represent
+  an auto-negotiated port that is currently running at full duplex.
+  Now it'll show "a-full".
+Fixed a bug in the way PopulatePorts.pm does Power-over-Ethernet
+  ports.  It now reports the correct statistics for these ports.
+Revamped the logging code and updated the "usage" message to
+  reflect the changes.
+
+# Version 11.19, Nov 5, 2009
+Added code to sanity-check the module data returned by switches.
+  Some switches, like 2960s, don't have removable modules, yet
+  they act like they do - they return information about the
+  non-existent modules.  I added code to
+  ModuleList::GetModuleDataFromStackMib to explicitly check for
+  bogus module data returned by switches.  If bogus data is
+  found, SwitchMap now treats the switch as if ti has no
+  modules.
+Changed the code that gets VLAN information.  Now, for trunk
+  ports, SwitchMap shows the native VLAN instead of VLAN 1.
+Added a line of error reporting to PopulatePorts.pm to help
+  explain why SwitchMap couldn't get the dot1dBasePortIfIndex
+  table.
+Deleted the code that produced the "text" subdirectory.  Early
+  versions of SwitchMap produced text files instead of HTML
+  files.  When I created HTML files, I kept around the text
+  files because they were used by the "search" feature.  Now
+  that the "search" feature searches the HTML files, the text
+  files serve no purpose.  If there are users who use the data
+  that was in the text files, the same data is now available
+  in the "csv" directory.
+Updated comments in SwitchMap.pl to more accurately explain
+  what files are written where, and why.
+
+# Version 11.18, Oct 11, 2009
+To recognize more Cisco module types, including those in the
+  new Nexus switches, added code to CiscoConstants.pm to parse
+  more of the CISCO-ENTITY-VENDORTYPE-OID-MIB.my file.
+  Thanks to Daniel Bielawa for reporting this.
+Modified FindOffice.pl to add the "Port" column to the list of
+  things that are searched.  Thanks to Jesse Becker.
+Modified SwitchMap.css to make the navigation bar and the
+  list of switches nicer.  Thanks to Radek Wlodek.
+
+# Version 11.17, Sep 29, 2009
+Minor fix in SwitchUtils.pm in WriteHtmlRow, where it writes the
+  "NIC Manufacturer" value.  Now we replace spaces with &nbsp;
+  to keep the browser from inserting line breaks in the field when
+  the window is too narrow.  Now, the lines stay aligned.  Thanks
+  to Jesse Becker.
+Fix the code added in version 11.14 that reads the file named
+  CISCO-ENTITY-VENDORTYPE-OID-MIB.my.  It was loading the wrong
+  OIDs, overwriting ones from the PRODUCT MIB file, causing the
+  chassis types to come out wrong.
+
+# Version 11.16, Sep 24, 2009
+Fix another stupid typo that prevented the file named
+  CISCO-ENTITY-VENDORTYPE-OID-MIB.my from making it into
+  the distribution.
+
+# Version 11.15, Sep 18, 2009
+Fix stupid typo that causes a warning about
+  "CiscoConstants::ENTITY_VENDORTYPE_MIB_FILE" used only once.
+
+# Version 11.14, Sep 18, 2009
+To recognize more Cisco chassis types, including the new Nexus
+  switches, added the CISCO-ENTITY-VENDORTYPE-OID-MIB.my file,
+  and added code to CiscoConstants.pm to read the file.  Thanks
+  to Daniel Bielawa for reporting this.
+Updated the CISCO-PRODUCTS-MIB.my file with the latest version
+  from Cisco.
+Updated the navigation links to use better CSS.  Thanks to
+  Radek Wlodek.
+Updated SearchPortlists.html to have use more strict HTML.
+  Thanks to Dan Thorson.
+Updated MacIpTables.pm to show a count of the DNS lookups
+  that failed.  Thanks to Dan Thorson.
+Updated PetesHelp.pm to make logging output include
+  timestamps.  This makes it easy to see where the
+  programs spend their time.  Thanks to Dan Thorson.
+Updated FindOfice with some minor fixups.  Thanks to Josh
+  Malone.
+Refactored FindOffice.pl.
+
+# Version 11.13, Jun 22, 2009
+In WriteCsvDirectory.pl, added the VLAN number to the end
+  of each generated CSV line.  Thanks to Sebastian Schadow.
+Modified WriteCsvDirectory to add some output fields to
+  the generated CSV files.
+Modified FindOffice.pl to allow an optional "fmt=csv"
+  argument to the search query.  If it's present,
+  FindOffice.pl will return CSV lines instead of an
+  HTML page.  This can be used to search the SwitchMap
+  data from scripts.  To see what this means, execute a
+  search and then append ";fmt=csv" to the query in your
+  browser's URL field.  If you want to make use of this,
+  You'll have to write code to issue queries and parse
+  the CSV lines.
+Modified FindOffice.pl to make the switch names into links.
+Added three port types (ASync, Dialer and Tunnel) to the
+  IsBogusPort subroutine in SwitchUtils.pm.  Thanks to
+  Jeff Cook.
+Added a new variable named $DestinationDirectoryRoot to
+  ThisSite.pm.  It's needed to support putting links into
+  the output of the "search" functionality (FindOffice.pl).
+  Long-time users of SwitchMap may recognize that it's
+  basically the same as a variable that was once in
+  ThisSite.pm named $SwitchMapUrl.  Some users had trouble
+  configuring the variable correctly, so I made SwitchMap
+  generate relative links, which made the variable
+  unnecessary.  Now FindOffice.pl requires it, so it's
+  back, and now that it has to exist, I replaced the
+  clunky code that generated relative links.
+  See ThisSite.default.pm for details.
+Added cool navigation links to the top of web pages.
+  Thanks to Jeff Cook and Josh Malone.
+Added scripts named switchmap and switchmap-daemon to the
+  distribution.  These offer an alternative to cron jobs
+  for running the SwitchMap programs regularly.  Thanks
+  to Josh Malone.
+Added error-log.shtml, index.php, pdate.pl.  These are
+  beta.  I mangled them in an attempt to integrate them
+  other changes I made to this version of SwitchMap.
+  I hope to document them in a future version of SwitchMap.
+  Thanks to Josh Malone.
+Modified the generated Statistics page to compile totals
+  and fit the tables on the page better.
+Updated the CISCO-PRODUCTS-MIB.my file with the latest version
+ from Cisco.
+Updated the oui.txt file with the latest from the IEEE, and
+ ran UpdateOuiCodes to update the OuiCodes.txt file.
+Added comments to ThisSite.default.pm describing how to use
+  the ApprovedPoeDevices array.
+Added a new version of the Windows installation document.
+  Many thanks to Nick Hills.
+
+
+# Version 11.12, May 26, 2009
+Rewrote FindOffice.pl to make it search the HTML files instead
+  of the .map files.  Now, search results are output in HTML, so
+  they look like the other web pages.  This means the results
+  show more information, and the search code is somewhat less
+  fragile.  Also, the found strings are now highlighted.
+On the VLAN map page, made the switch names into links to the
+  switch pages.  Thanks to Jeff Cook.
+Made VLANs into links to the VLAN pages.  Thanks to Jeff Cook.
+
+# Version 11.11, May 7, 2009
+Added WriteCsvDirectory.pm, which was accidentally left out
+  of the 11.9 and, unbelievably, 11.10 distributions.  Sheesh.
+
+# Version 11.10, May 7, 2009
+Slight fix to parsing of device names used in "What (via CDP)"
+  column.  Thanks to Sebastian Schadow.
+Added WriteCsvDirectory.pm, which was accidentally left out
+  of the 11.9 distribution.
+
+# Version 11.9, May 1, 2009
+Modified the "What (via CDP)" column to show the switch name
+  of the device that is at the end of the link and, if an
+  HTML file exists, make it a link.  Thanks to Sebastian Schadow.
+Added WritePoePortsFile.pm, which writes a new HTML page that
+  shows information about ports that are receiving
+  Power-over-Ethernet.  The page includes tables showing ports
+  that switches are delivering power to, but which connect to
+  devices that aren't in an "approved" list.  At my site, we
+  deliver POE to all ports for use by Cisco VOIP phones or by
+  access points, but we don't want people to plug in anything
+  that can take POE, like clocks or other gadgets.  The new
+  web page helps us enforce the policy.
+
+# Version 11.8, April 20, 2009
+Fixed SwitchMap.css, which was missing a definition for
+  tr.cellUnused.  Thanks to Steven Shockley.
+Fixed SwitchMap.css to make nicer spacing in table cells.
+  Thanks to Dan Thorson.
+Added $CsvDirectory to Constants.pm, to prepare for
+  changes being made by Dan Thorson.
+HTML pages are now created with URLs that have
+  "index.html" on the end.  This means we don't depend on
+  the web server to default to index.html files.  Thanks
+  to Jeff Cook.
+Replaced 11 identical copies of the portically function in
+  various files with one copy in the new Portically.pm file.
+Rewrote the portically sorting function to fix problems.
+  Thanks to Chris B.
+Optimized code in some files to avoid repeating calls to "sort".
+
+# Version 11.7, March 12, 2009
+Fixed a minor bug in WriteGigePerVlansDirectory.pm that caused
+  an "uninitialized value" error.
+Fixed a minor bug in ModuleList.pm - SwitchMap won't generate an
+  error for switches that don't have a Stack MIB or Entity MIB.
+Updated WriteTextDirectory.pm, ModuleList.pm and FindOffice.pl
+  to lengthen the size of the "Port" column from 7 to 8
+  characters to avoid truncating longer port names like
+  "Gi1/0/12".  Thanks to Ferdi Tekin.
+
+# Version 11.6, March 9, 2009
+Fixed bug introduced in 11.5, which caused SwitchMap.pl
+  to not copy the SwitchMap.css file to the destination
+  directory correctly.
+Removed unneeded "use" statements.
+Some switches (3524s, 3548s) can report the switch's own MAC addresses
+  along with the MAC addresses of things connected to the switch.  To
+  avoid showing the switch's own addresses, I added code to the
+  PopulateSwitch function in Switch.pm to get the switch's own
+  addresses.  Later, in PopulatePorts, when I'm building the list of
+  MACs that are known to each port, I explicitly skip these MAC
+  addresses.  I added this code is version 10.15, but it was
+  broken in the TranslateSnmpMacs subroutine.  Fixed.  Thanks
+  to Christoph Peus.
+Added code to SwitchMap.pl die with a nice error message if the
+  $DestinationDirectory or $StateFileDirectory don't exist.
+Added code to show the sysName.  We already showed the sysLocation,
+  sysDescr and sysContact information.  Thanks to Shawn Henry.
+Added a new config variable named $UseSysNames to ThisSite.pm.  It
+  makes SwitchMap use the sysName value as the name of the switch
+  in the output switch list.  This is nice for sites that don't
+  have good DNS.  Thanks to Shawn Henry.
+
+# Version 11.5, March 3, 2009
+Fixed colon-stripping in FindOffice.pl.  Thanks to
+  Christoph Peus.
+Did some hand-editing of OuiCodes.txt to shorten the
+  NIC manufacturer names.
+Made various corrections and improvements to the output
+  HTML.  Thanks to Dan Thorson.
+Made SwitchMap.pl copy the SwitchMap.css file to the
+  destination directory.  People weren't seeing colors
+  in the web pages.
+Fixed a bug getting duplex values from the ESSWITCH MIB.
+  Thanks to Shawn Henry.
+Fixed a bug getting duplex values from the 2900 MIB.
+  Thanks to Shawn Henry.
+Added code to get duplex values from the EtherLike MIB
+  when others don't work.  Thanks to Shawn Henry.
+
+# Version 11.4
+Increased the timeout on SNMP calls from 2 seconds to 5
+  seconds.
+Fixed a problem that manifested itself as errors about not
+  being able to get the dot1dBasePortIfIndex table.  The
+  actual problem was a bug in the code that caused it to
+  attempt to retrieve tables associated with VLAN 0.
+
+# Version 11.3
+Fixed a problem with bad trunk status values in
+  GetIsPortTrunking.  At least one 3550 switch had the
+  vlanPortIslAdminStatus table, but it contained bogus "0"
+  values, causing the DbgPrintTrunkAdminStatus routine
+  to crash.  Now the routine doesn't crash.  The code
+  will consider such ports to be not trunking, which
+  isn't perfect, but hey...
+Fixed a problem talking to switches that don't have
+  CDP data.
+
+# Version 11.2
+Fixed the setting of file protections on output files, which
+  wasn't working before now (!).
+Set the file protection on the files in the 'community'
+  directory so that only the owner can see them.
+
+# Version 11.1
+Avoid trying to get the trunk status of "bogus" ports like
+  "Po1".
+Split the source code files apart from the output web pages.
+  This probably should've been done long ago.  There are
+  now 2 new variables named $DestinationDirectory and
+  $StateFileDirectory.  They are defined in ThisSite.pm.
+  All the output gets written to $DestinationDirectory.
+  Files that contain state from run to run, like MacList
+  and the idlesince and community directories, get written
+  to $StateFileDirectory.  See ThisSite.pm for documentation.
+  I don't like adding more configuration variables, but
+  we can't save SNMP community strings to the web where
+  anyone can see them :-)
+  Thanks to Nick Hills for reporting this problem.
+
+# Version 11.0
+Replaced the SNMP_Session library with the newer
+  Net::SNMP library.  The programs now use GETBULK SNMP
+  requests instead of GET requests, substantially reducing
+  the number of IO requests needed to get data from devices,
+  so things run quite a bit faster.  This change meant changing
+  every SNMP call (about 45) and refactoring several
+  subroutines into one, hence the major version number change.
+Fixed an old problem with ScanSwitch.  The very first time
+  it was run, it would create files containing only the
+  header comment.  The second and subsequent times it was
+  run (when the idlesince files already exist) it worked
+  fine.  This probably vexed new users, sorry.
+In output HTML files, links to the SwitchMap.css file are
+  now relative links instead of rooted links.  This allowed
+  removal of the $SwitchMapUrl variable from the
+  ThisSite.pm file, so there's one less item to configure.
+Added code suggested by P. Klausner to cache SNMP community
+  strings.  For each device, SwitchMap now remembers the
+  community strings that worked the last time it was run,
+  so it can avoid spending time trying different communities.
+Fixed a bug in the way port information was stored in
+  idlesince files.  Now, port names can contain spaces.
+Fixed another bug in the way port information was stored in
+  idlesince files.  Now, if an idlesince file doesn't
+  contain information for a given port, an error message
+  saying "you should run ScanSwitch" is generated instead
+  of "uninitialized value" errors.
+Fixed the way ports that aren't in a VLAN are represented.
+  They used to get lumped into VLAN 1.  Now they are
+  represented as VLAN "none".
+Fixed a bug with the way trunk ports are recognized.  Now,
+  some ports are recognized as trunks that previously
+  weren't.
+In version 10.22, I stopped sorting the list of switch
+  names, so that users can make the list of switches appear
+  in the order they like.  This change wasn't pleasant for
+  some HP OpenView users, who have a long switch list that
+  is learned from OpenView.  In this version, I put back
+  the 'sort', but only when the list of switches comes
+  from OpenView.
+
+# Version 10.24
+Fixed bug reading data from HP Openview NNM, introduced in
+  version 10.22.
+Changed the code that opens SNMP sessions to make it return
+  the sysObjectId.  Now I save the sysObjectId to avoid
+  re-reading it later.
+
+# Version 10.23
+Refactored SNMP communities into a Perl module named
+  SnmpCommunities.pm.
+Refactored MacIP tables into the MacIpTables module.
+Deleted the unused RunStats.pm module.
+Fixed calculation of interface speeds to handle 10Gig
+  ports correctly.
+
+# Version 10.22
+Fixed SwitchMap.css.  It was showing some tables without
+  lines between the cells.
+Replaced the static hard-coded CiscoModuleTypes hash with
+  new hashes initialized from the CISCO-STACK-MIB.my file,
+  like the change in version 10.21.  This reduces problems
+  with unknown module types.  It also updates the module
+  types known to SwitchMap, which hasn't happened for a
+  while.
+Refactored the new-product-MIB and stack-MIB data
+  structures into a Perl module named CiscoConstants.pm.
+Removed the 'sort' keyword from the foreach loop in
+  CreateSwitches in SwitchMap.pl.  Now the list of
+  switches in the top-level output file named
+  switches/index.html will have the same order as
+  the @LocalSwitches array in ThisSite.pm.  This may
+  not be a good idea - users with HP OpenView might
+  not like the results.
+
+# Version 10.21
+Fixed a typo in FindOffice.pl that caused it to fail.
+Replaced the static hard-coded CiscoSwitchObjectOids hash with
+  new hashes named CiscoProductNames and CiscoProductDescriptions.
+  These are initialized in a new subroutine in SwitchUtils named
+  GetCiscoSysObjectOids, which reads and parses the
+  CISCO-PRODUCTS-MIB.my and/or CISCO-STACK-MIB.my files.
+  Hopefully this will solve the perennial problems with unknown
+  switch types.  Thanks to Peter Hamilton for the basic idea.
+Show product name and comments (if any) from the Cisco Product
+  and Stack MIBs.
+Show the sysDescr.
+
+# Version 10.20 October 26, 2008
+Upgraded the SNMP_Session package from version 1.08 to
+  version 1.12.  Thanks to Simon Leinen for SNMP_Session..
+Moved checking for "weird" dot1dBasePortIfIndex values, which
+  reduces the number of missed MAC addresses and cuts down on
+  "port is active, but no packets have been seen recently"
+  messages.
+Added "Po" and "Vl" ports to the list of port names that are
+  skipped.  This is in SwitchUtils.pm in function IsBogusPortName.
+Fixed typo in GetIsPortTrunking.pm - it own checks for
+  Port->{AuxiliaryVlanNbrs}, not Switch->{AuxiliaryVlanNbrs}
+Updated WriteTextDirectory.pm and FindOffice.pl to lengthen the
+  size of the "Port" column to avoid truncating longer port
+  names like "Gi1/0/1".
+Updated FindOffice.pl to allow regexp searches.  Now you can search
+  for, like, "128.117.82.4+".
+Rewrote GetArp.pl to use the Net::SNMP module instead of the
+  SNMP_Session module.  Cleaner, faster.  I plan to use Net::SNMP
+  for all other SNMP and remove SNMP_Session completely.
+Added definitions for 1760, 2900XL and 4006 switches to
+  %CiscoSwitchObjectOids in Constants.pm.
+Turned off some debugging statements accidentally left in
+  ModuleList.pm.
+Added VerifyPortLabels.pm and calls to it.  This is of use only
+  at my site, NCAR.
+Changed the name "emergency ports" to "spare ports".  Seems to
+  better describe the concept.
+Attempted to add support for Foundry switches using the generic
+  MIBs for VLANs.  Didn't get it to work, and commented-out the
+  new code.
+In various files, replaced hard-coded file path construction
+  with calls to File::Spec->catfile.  This makes the code more
+  portable to Windows systems, which use '\' instead of '/' in
+  file paths.
+The following changes made by Nick Hills, thanks Nick!
+  Updated the Windows installation instructions in
+    Windows-Installation-10.20.pdf
+  Constants.pm
+    - removed color/style definitions - these are now done with CSS
+  ThisSite.pm
+    - added url variable (required for location of switchmap.css)
+    - corrected typo in web trailer variable wed->web
+  New file: switchmap.css
+    - added file to distro (same colors but uses arial as default font)
+  other pm files
+    - removed references to old color variables
+    - added html class to table and other html types
+
+# Version 10.19
+Temporary version, very limited distribution.
+
+# Version 10.18 October 27, 2006
+Fixed a bug in ModuleList.pm to make it see modules correctly on
+  450x's.  They support Stack MIBs, but the Stack MIBs don't contain
+  module data.  The code now tries the Entity MIB when the Stack MIB
+  is empty.  Many thanks to Kent Hunt!
+(note: after I released this, I was told that I'd forgotten to update
+  Constants.pm, so the program thinks its version 10.17.  Sigh)
+
+# Version 10.17 October 25, 2006
+Fixed a bug in GetIsPortTrunking.pm that caused SwitchMap to
+  represent trunking on some IOS switches incorrectly.  Many thanks
+  to Lance Vermillion!
+Fixed SNMP contact and location, which were always showing
+  as "unknown".
+
+# Version 10.16 August 1, 2006
+Fixed the interpretation of duplex values reported by for 3524s
+  and 2950s in PopulatePorts.pm.
+Added some module types.
+Added meta tags to expire pages and not cache them.
+Added SNMP location and contact to the top of each page.
+Thanks to Nils-Gunnar-ext Hellstrom for the above.
+Added WriteNcarFiles.pm to distribution, forgot to do it
+  last time.
+
+# Version 10.15 July 29, 2006
+In PopulatePorts, GetVlanCommunity defines a special community
+  indexing scheme for 1912C switches, which I know works.  I added
+  2950s to the list, to make them use the same scheme.  This is a
+  test, rcaldwell will tell me if it makes SwitchMap handle his 2950s
+  correctly.  If this works, it'll fix Dmitry (sles) too.
+To support switches that run native IOS instead of CatIOS, I added
+  code to ModuleList.pm to make it try to get module data from the
+  Entity MIB if there's no stack MIB.
+Added WriteNcarFiles.pm, useful only at NCAR.
+Added some new statistics to the statistics page.
+Added code to show the chassis model in switch pages.
+Fixed a bug with the handling of auxiliary VLANs on ports connected to
+  IP phones.  Before, SwitchMap missed lots of auxiliary VLANs, and
+  therefore the phones connected to them.  I added a AuxiliaryVlanNbr
+  field to the Port object and then added code elsewhere to process
+  auxiliary VLANs along with the regular VLANs.
+Some switches (e.g. 3524) can report the switch's own MAC addresses
+  along with the MAC addresses of things connected to the switch.  To
+  avoid showing the switch's own addresses, I added code to the
+  PopulateSwitch function in Switch.pm to get the switch's own
+  addresses.  Later, in PopulatePorts, when I'm building the list of
+  MACs that are known to each port, I explicitly skip these MAC
+  addresses.
+Use SNMP_Session-1.08 instead of SNMP_Session-1.07.
+Updated CiscoModuleTypes and CiscoSwitchObjectOids in Constants.pm.
+Updated the OuiCodes.txt file with a new download from the IEEE.
+
+# Version 10.14 January 25, 2006
+Fix minor broken link in SearchNetwork.html.
+Fix GetArp.pl to make it consistent with ScanSwitch.pl and
+  SwitchMap.pl: it now uses the $ThisSite::CmstrFile variable
+  correctly instead of just using $ThisSite::Community.
+  Thanks to Roddie Hasan.
+
+# Version 10.13 November 21, 2005
+Repair silly version number confusion.
+
+# Version 10.12 November 18, 2005
+Added WriteGigePerVlansDirectory.pm to the distribution, it was
+  accidentally left out.  (Really this time :-)
+
+# Version 10.11 November 18, 2005
+Added WriteGigePerVlansDirectory.pm to the distribution, it was
+  accidentally left out.
+
+# Version 10.10 November 17, 2005
+Added module type 921.
+Added switch types for 4503s.
+SwitchMap now outputs a new "GigE ports per VLAN" page, requested for
+  accounting purposes at my site.
+In MacIpTables.pm, changed the way the MacList file is read so that
+  when there are multiple entries for a single MAC address, the most
+  recent one is used.  This makes it more likely that the MAC->IP
+  address mapping is correct for hosts that have changed their IP
+  address recently.
+Also in MacIpTables.pm, added a $doDns boolean variable to
+  GetMacIpTables so that when ScanSwitch calls GetMacIpTables to get
+  switch names, GetMacIpTables doesn't do reverse-DNS lookups on the
+  MAC addresses.  This makes ScanSwitch run faster.  When SwitchMap
+  calls GetMacIpTables, $doDns is "true", and the lookups get done.
+  Thanks to Brian Sprague.
+Add runSwitchMap.sh, an optional shell script you can use to run
+  SwitchMap.  It's cleaner than separate cron jobs.  Thanks to
+  Lance Vermillion.
+Added Windows_Installation.pdf to the distribution, it was
+  accidentally left out.  Thanks to Nick Hills.
+Added code to put 'a-' prefixes on Duplex values to indicate that a
+  port is configured to auto-negotiate speed and duplex.  This only
+  works on switches that support the Cisco STACK MIB, but that's a lot
+  of switches :-)  On such switches, these new prefixes indicate hosts
+  that are not auto-negotiating correctly.
+
+# Version 10.9 October 12, 2005
+Identical to 10.8, needed to release 10.9 because the tar
+  file for 10.8 was corrupted on SourceForge and I couldn't
+  figure out how to fix it on SourceForge.
+
+# Version 10.8 October 12, 2005
+Added a new color named $DisabledColor to represent disabled ports.
+  It's used only in the "information about what the port is connected
+  to" cells.  I set it to red.  This was for a user who wanted to
+  see a different color for disabled ports and for unused ports.
+Added some switch types to the list in Constants.pm.  Thanks to Dmitry
+Melekhov and Peter Harrison.
+Added Windows_Installation.pdf.  Thanks to Nick Hills.
+Fixed FindOffice.pl so now it won't mistakenly skip searching lines
+  that have empty "Port Label" fields.  Also, it's faster.  Also, it
+  will now match MAC addresses that have dashes, periods or colons,
+  even though these characters don't appear in the text files.  Also,
+  it now searches the Speed and Duplex fields.  Thanks to Peter Harrison.
+
+# Version 10.7 June 10, 2005
+Added 502 to CiscoModuleTypes hash in Constants.pm.
+Replaced speed hash with a new SpeedMap function in PopulatePorts.pm.
+  The function is more likely to handle unanticipated speeds found in
+  MIBs.
+Fixed extraction of module numbers from port names in
+  PopulatePorts.pm, WriteSwitchesDirectory.pm, and
+  WriteTextDirectory.pm.  This fixes handling of 6500s
+  running IOS.
+Fixed reading of port labels in 3550s - now if portName MIB tables and
+  use are empty, use values from ifAlias tables.
+Use grey to show unused ports.
+Fixed handling of modules with an unrecognized type - now it won't
+  generate "Use of uninitialized value" errors.
+
+# Version 10.6 June 6, 2005
+Fix bugs introduced in 10.5...
+Fix port ordering bug - ports weren't sorted correctly.
+Fix trunking detection on switches that support the Stack MIB,
+  specifically 3550s.
+Added 200M to %Speeds hash in PopulatePorts.pm.
+
+# Version 10.5 June 5, 2005
+Fixed the handling of port names like "Fa2/0/15", which are used in
+  3750 stackable switches.
+Fixed reading of port speed values - instead of showing administrative
+  speed of all ports, now show operational speed of active ports and
+  administrative speed (if available) of inactive ports.
+Fixed a minor problem with empty port labels that were being output
+  as blank instead of "&nbsp".
+Fixed a bug where an undefined port name caused errors in
+  IsBogusPort in SwitchUtils.pm.
+Removed the unused $FinderUrl variable from ThisSite.pm and
+  ThisSite.default.pm
+Updated "use lib" statements in *.pl files to use the FindBin module
+  to avoid hard-coding a path while still allowing the programs to be
+  run from any directory.
+Updated "use" statements to reference SNMP_Session and BER directly
+  from the SNMP_Session-1.07/lib directory.  This is better than
+  referencing local copies, because it indicates that those modules
+  came from somewhere else.
+
+# Version 10.4 March 10, 2005
+Fixed the way PopulatePorts was handling switches that use the
+  Cisco Stack MIB.  Now, the proper Speed, Duplex and Label values
+  are displayed for switches like 3550s.
+Improved the displayed "Speed" value .  Before, it was just the
+  administrative speed for some switches.  Now, it's the operational
+  speed for active ports and the administrative speed for inactive
+  ports.
+Changed conditional logic in WriteTextRow in WriteTextDirectory.pm to
+  fix problem where only one line was output for ports with multiple
+  MAC addresses.  Thanks to David E. Nelson.
+Changed a numeric "not equals" to a character "not equals" in
+  WriteTextDirectory.pm to fix port name problems reported by
+  Martin Hierling, thanks Martin.
+Fixed the initialization of port "State" to prevent an error
+  message, thanks again to Martin Hierling.
+Added chmod calls to explicitly set the file protections on all output
+  files.  Added a new variable FileProtectionModes to ThisSite.pm.
+Added SearchPortlists.html to the distribution, it was mistakenly left
+  out.
+Fixed step 1 in README to satisfy problems getting
+  Log::Dispatch::Screen
+
+# Version 10.3 January 4, 2005
+I said I "added a hack" in version 10.1 (below), but I didn't.  This
+  time I did.
+Fixed minor glitch where etherchannel ports said "etherchanneled with
+  unknown x/y", the "unknown" was dumb
+
+# Version 10.2 January 3, 2005
+Oops, added RunStats.pm to the distribution
+
+# Version 10.1 January 2005
+Reorganized the main webpage (added "ports" directory)
+Renamed WriteEmergencyPortFile.pm to WritePortsDirectory.pm
+Added SearchPortlists.html to make-distribution.txt
+Added -s option to display runtime statistics
+Fixed file access so the scripts don't require that you be in the
+  working directory when you run them, and they don't call chdir.
+Made a hack that allows switches with 1 module, like 3550s and 3750s,
+  to be processed.  This isn't done right, but it might allow these
+  switches to be handled without errors.
+Added a skip of bridge ports numbered 1921.  Dunno why I have to do
+  this, maybe someone at Cisco knows.
+
+# Version 10 late-December 2004
+Added support for etherchannels
+   wrote EtherChannels.pm
+   wrote PoplateEtherChannels.pm
+Wrote WriteEmergencyPortFile.pm
+Wrote WriteUnusedDirectory.pm
+Wrote WriteModuleFile.pm
+Now use objects for ports
+  wrote Port.pm
+  wrote PopulatePorts.pm
+Renamed WriteHtmlDirectory to WriteSwitchesDirectory
+Moved CiscoModuleTypes to Constants.pm
+Fixed bug where 3524s with no VLANs or trunking had no
+  MAC, IP, NIC or DNS data
+
+# Version 9.1 early December 2004
+Replaced numeric compare with character compare in Switch.pm.
+  Thanks to Mark Seddon <Mark.Seddon@rs-components.com>
+Added $ThisSite:HtmlDirectory to allow specifying where the HTML
+  and.map files are to be written.
+  Thanks to Mark Seddon <Mark.Seddon@rs-components.com>
+To reduce clutter, I now use new output subdirectories named
+  idlesince, switches, text, unused and vlans
+Several changes in Constants.pm and ThisSite.pm for portability
+Wrote WriteTextDirectory.pm
+Wrote WriteVlansDirectory.pm
+Updated CiscoModuleTypes in ModuleList.pm
+Updated SpeedMap in Switch.pm
+Fixed bug where 3524s with no VLANs or trunking were being skipped
+
+# Version 9.04 June 2004
+Attempt to fix failure to find "new" in Switch.pm.
+
+# Version 9.01 June 2004
+  The statistics page mistakenly counted "Disabled" ports as
+  "Inactive", now the page has a new row that has a count of
+  "Disabled" ports.  Thanks to Kurt Kearney <kkearney@nebs.com>
+
+# Version 9.0: June 2004
+  Major rewrite using objects
+  Support for 1912C switches
+  Replaced logging with calls to Log4Perl
+
+# Version 8.0: August 2003
+  Support for 3524 switches
+  Added "What (via CDP)" columns
+  various bug fixes
+
+# Version 7.0: April 2003
+
+# Version 6.0: December 2002
+
+# Version 5.0: May 2001
+
+# Version 4.0: February 2001
+
+# Version 3.0: November 1999
+
+# Version 2.0: September 1999
+
+# Version 1.0: May 1999

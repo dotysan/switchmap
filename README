@@ -1,0 +1,303 @@
+
+(This file was last updated November 18, 2013 by Pete Siemsen)
+
+This file describes a set of Perl scripts called "SwitchMap" that
+generate handy Web pages describing Cisco switches.  The comments at
+the top of the SwitchMap.pl file contain more information.
+
+
+INSTALLING SwitchMap on Microsoft Windows:
+
+See Windows_Installation.pdf for Windows-specific instructions.  Even
+if you read that file, you'll probably want to read this file anyway
+to learn how SwitchMap works.
+
+
+INSTALLING SwitchMap on Unix/Linux:
+
+Below, I've tried to guess what will be needed to get the script
+working at your site.  It's assumed that you have Perl 5.0.  If there
+are problems, please send email to the address given at the bottom of
+this file.
+
+
+INSTALLING
+1. Get the Perl modules needed by switchmap.  If you are running
+   Debian Linux, this should do it:
+
+   (as root)
+   apt-get install libnet-snmp-perl
+   apt-get install liblog-log4perl-perl
+   apt-get install liblog-dispatch-perl
+   apt-get install libsnmp-perl
+
+   If you have a non-Debian system, with Perl installed, try the
+   following:
+
+   (as root)
+   perl -MCPAN -e shell
+   install Log::Log4perl
+   install Module::Build
+   install Net::SNMP
+   install Log::Dispatch::Screen
+   h
+   q
+
+
+2. Unpack the distribution
+
+   The switchmap Perl scripts create web pages, so you'll want to
+   install the scripts on a machine that has a web server.  Put the
+   distribution file (named something like switchmap-12.5.tar.gz) in a
+   directory somewhere on the machine.  If you have permisson, put it
+   where your operating system likes to store third-party software.
+   On Unix systems, this is /usr/local.  Gunzip/untar the .gz file.
+   You should end up with a directory named something like
+   "switchmap-12.5".  It should contain the following files:
+
+    CHANGELOG                      Shows history of changes
+    CISCO-ENTITY-VENDORTYPE-OID-MIB.my  From Cisco, provides SNMP OIDs
+    CISCO-PRODUCTS-MIB.my          From Cisco, provides SNMP OIDs
+    CISCO-STACK-MIB.my             From Cisco, provides module data
+    CiscoMibConstants.pm           functions to read Cisco MIB constants
+    Constants.pm                   Constant definitions
+    EtherChannel.pm                EtherChannel class
+    FindOffice.pl                  CGI script, implements "search"
+    GetArp.pl                      Program to get ARP caches from routers
+    GetCiscoPortTrunkStatuses.pm   Gets some port data from switches
+    GetMacsFromCiscoMibs.pm        Gets MAC addresses from Cisco CAM tables
+    GetMacsFromQBridgeMib.pm       Gets MAC addresses from the Q-Bridge MIB
+    GetVlansOnPorts.pm             Gets VLANs on trunk ports
+    hpMibConstants.pm              functions to read HP MIB constants
+    MacIpTables.pm                 Gets MAC addresses, hostnames, switchnames
+    MibConstants.pm                functions to read MIB constants
+    ModuleList.pm                  ModuleList class
+    OuiCodes.pm                    OuiCodes hash
+    OuiCodes.txt                   Organizationally Unique Identifiers table
+    PetesUtils.pm                  General utility functions
+    PopulateEtherChannels.pm       Contains the PopulateEtherChannels function
+    PopulatePorts.pm               Contains the PopulatePort function
+    Port.pm                        Port class
+    Portically.pm                  contains the "portically" sorting function
+    README                         this file
+    ScanSwitch.pl                  Perl script to generate "idlesince" files
+    SearchPortlists.html           HTML file that invokes FindOffice.pl
+    SnmpCommunities.pm             SNMP communities and code to read them
+    Stats.pm                       Code to produce the statistics page
+    Switch.pm                      Switch class
+    SwitchMap.css                  CSS file used by the generated web pages
+    switchmap                      Optional Unix startup file for /etc/init.d
+    switchmap-daemon               Optional script used by "switchmap"
+    SwitchMap.pl                   Main program
+    SwitchUtils.pm                 Include file containing shared functions
+    ThisSite.pm                    Site-specific constant definitions
+    UpdateOuiCodes.pl              Program to generate OuiCodes.txt
+    VerifyPortLabels               Check port labels (used only at NCAR)
+    Vlan.pm                        Vlan class
+    Windows_Installation.pdf       How to install SwitchMap on Windows systems
+    WriteCsvDirectory.pm           Writes the csv directory
+    WriteGigePerVlansDirectory.pm  Writes the gigeportspervlan directory
+    WriteModulesFile.pm            Writes the modulesbyswitch.html file
+    WriteNcarFiles.pm              Writes files used only at NCAR
+    WritePLookupDirectory.pm       Writes files used by the plookup program
+    WritePortsDirectory.pm         Writes the ports directory
+    WritePoePortsFile.pm           Writes the Power-over-Ethenet ports file
+    WriteSuspiciousPortsFile.pm    Writes the Power-over-Ethenet ports file
+    WriteSwitchesDirectory.pm      Writes the switches directory
+    WriteUnusedDirectory.pm        Writes the unused directory
+    WriteVlansDirectory.pm         Writes the vlans directory
+    error-log.shtml                beta code to view nidex.php's error log
+    index.php                      beta code to refresh SwitchMap on demand
+
+   These files are described in more detail in the comments at the top
+   of the SwitchMap.pl file.
+
+
+3. Set up SNMP in your switches and routers
+
+   Make sure your routers and Catalyst switches are configured to
+   speak SNMP.  This command enables SNMP on a Cisco Catalyst switch:
+
+     snmp community read-only public
+
+   You should choose another SNMP community string than "public".  See
+   the ThisSite.pm file for instructions for how to configure
+   community strings into the switchmap programs.
+
+
+4. Define site-specific variables
+
+   Change the definitions in ThisSite.pm to fit your site.  Comments
+   in the file explain this in detail.  This is where you define the
+   names of the routers and switches in your network, where the output
+   files should get written, etc.
+
+
+5. Run GetArp.pl.
+
+   Switchmap needs to map MAC addresses to IP addresses.  If you don't
+   use HP OpenView, SwitchMap reads a mapping table from a file named
+   MacList.  The MacList file is created and updated by the GetArp.pl
+   script.  GetArp.pl reads ARP caches from your routers and updates
+   the MacList file.  To tell GetArp.pl the names of your routers, set
+   the @routers array in the ThisSite.pm file.  Router ARP cache
+   entries time out, so to make MacList as complete as possible, you
+   should run GetArp.pl often (see below).  If GetArp doesn't work,
+   use the "-d" option to turn on debugging messages.
+
+   As of version 12.0, SwitchMap reads ARP caches from switches as
+   well as routers, so that it can produce information about routing
+   ports as well as switching ports.  You still need to run GetArp.pl
+   to maintain the MacList file.
+
+
+6. Run ScanSwitch.pl.
+
+   This should create a directory named "idlesince" containing a file
+   for each of your Cisco switches.  If it doesn't work, use the "-d"
+   option to turn on debugging messages.
+
+
+7. Run SwitchMap.pl.
+
+   This should produce HTML files in subdirectories of the
+   $DestinationDirectory that you configured in your ThisSite.pm file.
+   The subdirectories are named "ports", "vlans" and "switches".  If
+   SwitchMap doesn't work, try using the "-d" option to turn on
+   debugging messages.
+
+
+8. Look at the resulting files
+
+    Point your Web browser at the $DestinationdDirectory.  There
+    should be an index.html file.  Hope it looks ok!
+
+
+9. Once the above is working, you'll want to set up some mechanism to
+   run the programs on a regular schedule to keep the web pages
+   up-to-date.  Mechanisms to do this depend on your operating system.
+   Some approaches for Unix-based systems are described here.  Windows
+   users should look in the Windows_Installation.pdf file in the
+   SwitchMap distribution.
+
+    A. cron jobs
+
+       Option 1:
+
+    Set up one cron job to run runSwitchMap.sh, which will run all
+    three SwitchMap programs.  This option is simpler than Option 2,
+    but offers less flexibility - you'll tend to run SwitchMap.pl a
+    little more often than you probably need, and you may run
+    ScanSwitch.pl less often.  If you use this option, you'll have to
+    edit runSwitchMap.sh to install some paths and such.
+
+       Option 2:
+
+    Set up 3 separate cron jobs to run the 3 programs regularly.  This
+    is what I do at my site.  Set up one job to run ScanSwitch.pl
+    every hour and one to run SwitchMap.pl every day.  If you don't
+    have HP OpenView, set up a third cron job to run GetArp.pl every 3
+    hours.  Of course, you may want to change these frequencies - some
+    sites run SwitchMap every hour.  My crontab entries look like
+    this:
+
+#
+# These entries run Pete Siemsen's switchmap scripts to gather
+# information about Ethernet switch ports.  The result is web pages
+# created every day that show what machines are connected to the
+# switch ports.
+#
+# At 44 minutes after every hour, scan the switches for port
+# statuses and update the .idlesince files.  At 49 minutes after
+# every hour, get ARP information from the routers and update
+# the MacList file.
+#
+44 * * * * /usr/web/nets/internal/portlists/ScanSwitch.pl
+49 * * * * /usr/web/nets/internal/portlists/GetArp.pl
+#
+# At 2:05pm every day, during the middle of the day when the
+# most ports are likely to be active, read the .idlesince files
+# and create the web pages.  It's best to run this when there's
+# a lot of network traffic, because the switch CAM tables are the
+# most likely to be full of MAC addresses.
+#
+05 14 * * * /usr/web/nets/internal/portlists/SwitchMap.pl
+
+   B. startup daemon
+
+   This is an alternative to cron jobs.  It uses the standard Unix
+   mechanism to start a daemon when the system boots.  The daemon runs
+   the SwitchMap programs.  This requires a little more knowledge of
+   Unix than the cron mechanisms described above.  Copy the file named
+   "switchmap" to /etc/init.d and edit it to set the paths.  If you
+   have "chkconfig", run it to set up the proper links to the
+   "switchmap" file.
+
+
+10. If you have HP Openview NNM and you've set up SNMP community
+    strings correctly, the SwitchMap programs will read SNMP community
+    strings from HP NNM's files.  This is convenient because SwitchMap
+    will automatically adjust as you add or remove switches from your
+    network.  If you don't have NNM, you'll have to manually keep the
+    "LocalSwitches" and "routers" arrays up-to-date in your
+    ThisSites.pm file.
+
+
+11. The HTML files produced by SwitchMap.pl include a "search the
+    port lists web pages" feature.  This allows users to, for example,
+    find a port by the IP address it serves.  To make the search
+    functionality work, you have to set up the following things:
+
+    1. Edit FindOffice.pl.  In the "use lib" line, change the path to
+       the directory that contains Constants.pm.
+
+    2. Copy FindOffice.pl to a directory known to your web server.
+       The directory must be one that the web server allows CGI files
+       to be run from.  The easiest thing to do is to leave
+       FindOffice.pl in the directory that you configured as the
+       $DestinationDirectory in your ThisSite.pm file.  Then configure
+       your web server to add that directory to the list of
+       directories that can contain CGI files.  If you don't run the
+       web server yourself, ask the person who does.  They may require
+       that you put FindOffice.pl somewhere else.
+
+    3. Edit SearchPortLists.html to fix paths.  Near the top, you'll
+       find 7 references to the directory where the SwitchMap files
+       reside (at my site the references are
+       "/nets/internal/portlists").  Change them to the directory
+       where SwitchMap resides on your system (it'll be the same place
+       as the $DestinationDirectory in your ThisSite.pm, but relative
+       to the root of the web server).
+
+       A little further down, find the "form" tag, and set the value
+       of it's action attribute to the path to FindOffice.pl.  At my
+       site it's "/nets/cgi/internal/FindOffice.pl".  You'll need to
+       replace the "nets/cgi/internal" with the appropriate path to
+       the place you copied FindOffce.pl to in step #2.
+
+    4. Copy SearchPortLists.html to the directory that you defined as
+       the $DestinationDirectory in ThisSite.pm.  While you're at it,
+       edit the blurb at the bottom, after the <hr>, to make it
+       reflect your site, not mine :-)
+
+    FindOffice allows an optional "fmt=csv" argument to the search
+    query.  If it's present, FindOffice.pl will return CSV lines
+    instead of an HTML page.  This can be useful for searching the
+    SwitchMap data from programs or scripts that you write.  To see
+    what this means, execute a search and then append ";fmt=csv" to
+    the query in your browser's URL field.  To make use of this,
+    you'll have to write code to issue the queries and parse the CSV
+    lines.
+
+
+Please let me know if you have problems and need help, or if you have
+problems that you fix, so I can update SwitchMap.  The best way to ask
+for help is to log in to sourceforge at
+http://sourceforge.nkt/projects/switchmap and post a message to the
+"Open Discussion" forum.
+
+
+Pete Siemsen
+NCAR
+siemsen@ucar.edu
+303-497-1810

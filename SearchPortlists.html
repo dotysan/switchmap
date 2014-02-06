@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+    <title>Search Port Lists webpages</title>
+    <link href="/nets/internal/portlists/SwitchMap.css" rel="stylesheet">
+  </head>
+  <body bgcolor="white">
+    <h1>Search Port Lists webpages</h1>
+
+    <ul class="toc">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="switches/index.html">Switches</a></li>
+      <li><a href="modulesbyswitch.html">Modules</a></li>
+      <li><a href="ports/index.html">Ports</a></li>
+      <li><a href="vlans/index.html"">VLANs</a></li>
+      <li><a href="switchstats.html">Statistics</a></li>
+    </ul>
+    <br />
+
+    <hr>
+    <p>
+    <form method=GET action="/nets/cgi/internal/FindOffice.pl">
+      <table>
+          <tr>
+            <td>
+              <input type=text name="strng" size="30">
+              <input type="submit" value="Search">
+            </td>
+          </tr>
+      </table>
+    </form>
+  </p>
+
+    <p>
+      This search window lets you search the Port Lists for
+      "<strong>IP&nbsp;address</strong>",
+      "<strong>MAC&nbsp;address</strong>",
+      "<strong>DNS&nbsp;name</strong>" or
+      "<strong>Port&nbsp;Label</strong>" information.
+      You can use this to get answers to questions like
+    </p>
+
+    <ul>
+      <li>What ports are active in a given office?</li>
+      <li>Where is a given MAC address?</li>
+      <li>What switch/port is the machine named fileserver connected to?</li>
+    </ul>
+
+    <p>
+      In the Port Lists, "<strong>Port&nbsp;Label</strong>" fields
+      show what's stored in the "name" field for each port in a UCAR
+      Catalyst switch.
+      The UCAR NETS folks use the port label field to indicate what
+      the port is connected to.
+      For example, the Catalyst Ethernet switch named ml-16c-c1-gs
+      has a port label of "ML-31G-W1-3B" on port 6/11, indicating the
+      port is connected to Mesa Lab room 31G, wallplate 1, port 3B.
+      To learn  more about the syntax used by NETS in location labels,
+      see the
+      <a href="http://netserver.ucar.edu/nets/docs/labeling/">NETS&nbsp;Names&nbsp;and&nbsp;Labels&nbsp;document</a>.
+    </p>
+
+    <p>
+      Case is not significant in this search.
+    </p>
+
+    <p>
+    Virtual ports are skipped in this search to avoid cluttering the
+    seach results with too many hits.  We usually want to find a MAC
+    address, IP address or DNS name for a machine on the switch port
+    that it is connected to, not on virtual ports on other switches.
+   </p>
+
+    <hr>
+    <p class="tiny">
+      Address comments or questions about this Web page to the
+      <a href="/nets/">Network&nbsp;Engineering&nbsp;&amp;&nbsp;Telecommunications&nbsp;Section</a>
+      at
+      <a href="mailto:nets-www@ncar.ucar.edu">nets-www@ncar.ucar.edu</a>.
+      The NETS is part of the
+      <a href="http://www.cisl.ucar.edu">Computational&nbsp;&amp;&nbsp;Information&nbsp;Systems&nbsp;Laboratory</a>
+      of the
+      <a href="http://www.ncar.ucar.edu">National&nbsp;Center&nbsp;for&nbsp;Atmospheric&nbsp;Research</a>,
+      which is sponsored by the
+      <a href="http://www.nsf.gov">National&nbsp;Science&nbsp;Foundation</a>
+      and managed by the
+      <a href="http://www.ucar.edu">University&nbsp;Corporation&nbsp;for&nbsp;Atmospheric&nbsp;Research</a>.
+      This website follows the
+      <a href="http://www.ucar.edu/legal/privacy_policy.shtml">UCAR&nbsp;General&nbsp;Privacy&nbsp;Policy</a>
+      and the
+      <a href="http://www.ucar.edu/legal/terms_of_use.shtml">NCAR/UCAR/UOP&nbsp;Terms&nbsp;of&nbsp;Use</a>.
+    </p>
+  </body>
+</html>
