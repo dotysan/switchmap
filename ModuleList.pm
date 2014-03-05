@@ -26,6 +26,8 @@ sub new {
   $this->{HwVersion} = {};
   $this->{SwVersion} = {};
   $this->{SerialNumberString} = {};
+  $this->{Role} = {};
+  $this->{ModuleStatus} = {};
   return bless $this;
 }
 
@@ -122,6 +124,40 @@ sub GetModuleDataFromStackMib ($$) {
     $this->{Description}{$MNbr} = ($ModuleComment eq '') ? 'unknown' : $ModuleComment;
   }
 
+  # if Description unknown (i.e. C3750 stack), use cswSwitchInfoTable to
+  # display the Role (master(1)/member(2)/notMember(3))
+  # TODO: and SwPriority
+  $status = SwitchUtils::GetSnmpTable($Session,
+                                      'cswSwitchRole',
+                                      $Constants::INTERFACE,
+                                      $this->{Role});
+  if ($status) {
+    $logger->debug("Yay!");
+    # But the CISCO-STACKWISE-MIB::cswSwitchInfoTable.cswSwitchRole doesn't
+    # use the same index as the CISCO-STACK-MIB::moduleTable.moduleType so
+    # we assume (dangerously or not?) that the first digit of the STACKWISE
+    # entPhysicalIndex is the same as the STACK moduleIndex. This _should_
+    # work because StackWise stacks never have more than 9 members/slots.
+    foreach my $MNbr (keys %{$this->{Role}}) {
+      # hope it's safe to adjust the indexes of the hash we're looping?
+      $this->{Role}{substr($MNbr,0,1)} = delete $this->{Role}{$MNbr};
+    }
+    # Or...I guess we could look up the
+    # CISCO-STACKWISE-MIB::cswSwitchInfoTable.cswSwitchNumCurrent
+    # column and use that as the hash index instead of tweaking
+    # the entPhysicalIndex. But that would require changing the
+    # way SwitchUtils::GetSnmpTable() indexes the $ReturnedTable.
+
+    foreach my $MNbr (keys %{$this->{Description}}) {
+      $this->{Description}{$MNbr} = 'StackWise ' . CiscoMibConstants::getCiscoSwitchRole($this->{Role}{$MNbr})
+        if $this->{Description}{$MNbr} eq 'unknown';
+    }
+  }
+
+  $status = SwitchUtils::GetSnmpTable($Session,
+                                      'moduleStatus',
+                                      $Constants::INTERFACE,
+                                      $this->{ModuleStatus});
   # Get the serial numbers of all the modules
   $status = SwitchUtils::GetSnmpTable($Session,
                                       'moduleSerialNumberString',

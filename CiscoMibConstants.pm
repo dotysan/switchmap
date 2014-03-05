@@ -20,6 +20,17 @@ my %CiscoChassisNames;
 my %CiscoChassisComments;
 my %CiscoModuleNames;
 my %CiscoModuleComments;
+my %CiscoModuleStatus = (
+  1, 'other',
+  2, 'ok',
+  3, 'minorFault',
+  4, 'majorFault'
+);
+my %CiscoSwitchRoles = (
+  1, 'master',
+  2, 'member',
+  3, 'notMember'
+);
 
 
 #
@@ -205,5 +216,20 @@ sub getCiscoModuleComment ($) {
   return '' if !exists $CiscoModuleComments{$sysObjectID};
   return $CiscoModuleComments{$sysObjectID};
 }
+
+
+sub getCiscoModuleStatus ($) {
+  my $sysObjectID = shift;
+  return '' if !exists $CiscoModuleStatus{$sysObjectID};
+  return $CiscoModuleStatus{$sysObjectID};
+}
+
+
+sub getCiscoSwitchRole ($) {
+  my $sysObjectID = shift;
+  return '' if !exists $CiscoSwitchRoles{$sysObjectID};
+  return $CiscoSwitchRoles{$sysObjectID};
+}
+
 
 1;

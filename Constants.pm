@@ -263,6 +263,7 @@ $SecondsPerMonth = 30 * $SecondsPerDay;  # number of seconds in a 30-day month
              #
              'moduleType'               => '1.3.6.1.4.1.9.5.1.3.1.1.2',
              'moduleSerialNumber'       => '1.3.6.1.4.1.9.5.1.3.1.1.3',
+             'moduleStatus'             => '1.3.6.1.4.1.9.5.1.3.1.1.10',
              'moduleName'               => '1.3.6.1.4.1.9.5.1.3.1.1.13',
              'moduleModel'              => '1.3.6.1.4.1.9.5.1.3.1.1.17',
              'moduleHwVersion'          => '1.3.6.1.4.1.9.5.1.3.1.1.18',
@@ -341,6 +342,13 @@ $SecondsPerMonth = 30 * $SecondsPerDay;  # number of seconds in a 30-day month
              #   1.1.8         = cdpCacheTable.cdpCacheEntry.cdpCachePlatform
              'cdpCacheDeviceId' => '1.3.6.1.4.1.9.9.23.1.2.1.1.6',
              'cdpCachePlatform' => '1.3.6.1.4.1.9.9.23.1.2.1.1.8',
+
+             #
+             # CISCO-STACKWISE-MIB::cswSwitchInfoTable:
+             #  1.3.6.1.4.1.9.9.500 = iso.org.dod.internet.private.enterprises.cisco.ciscoMgmt.ciscoStackWiseMIB
+             #  1.2.1.1             = ciscoStackWiseMIBObjects.cswStackInfo.cswSwitchInfoTable.cswSwitchInfoEntry
+             'cswSwitchRole'       => '1.3.6.1.4.1.9.9.500.1.2.1.1.3',
+             'cswSwitchSwPriority' => '1.3.6.1.4.1.9.9.500.1.2.1.1.4',
 
              #
              # 1.3.6.1.2.1 = iso.org.dod.internet.mgmt.mib-2

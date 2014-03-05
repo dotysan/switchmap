@@ -3,6 +3,7 @@ package WriteModulesFile;
 use strict;
 use Log::Log4perl qw(get_logger);
 use ModuleList;
+use feature 'switch';
 
 
 sub WriteSwitchModuleTableFragment ($$) {
@@ -15,21 +16,34 @@ sub WriteSwitchModuleTableFragment ($$) {
   my $RemainderOfFragment = '';
   my $FirstTimeThroughLoop = 1;
   foreach my $ModNbr (sort {$a <=> $b} keys %{$ModuleList->{Model}}) {
+    my $sty= 'style="';
+    if ($ModuleList->{Description}{$ModNbr} eq 'StackWise master') {
+      $sty.= 'color:#006000;font-weight:bold;'; # bold green
+    } elsif ($ModuleList->{Description}{$ModNbr} eq 'StackWise notMember') {
+      $sty.= 'color:#c0c0c0;'; # grey
+     #next; # or just ignore them?
+    } # otherwise 'StackWise Member' normal text color (black)
+    given(CiscoMibConstants::getCiscoModuleStatus($ModuleList->{ModuleStatus}{$ModNbr})) {
+      when('majorFault' ) { $sty.= 'background-color:#ffd0d0;'; } # red (absent stack member)
+      when('minorFault' ) { $sty.= 'background-color:#ffc000;'; } # orange
+      when('other'      ) { $sty.= 'background-color:#ffff00;'; } # yellow
+    } # otherwise ok(2) normal background color (white)
     if ($FirstTimeThroughLoop) {
       $FirstTimeThroughLoop = 0; # first time through, don't output "<tr>"
     } else {
       $RemainderOfFragment .= "<tr>";
     }
     $RemainderOfFragment .= <<MBS2;
-<td>$ModNbr</td>
-<td>$ModuleList->{Model}{$ModNbr}</td>
-<td>$ModuleList->{Description}{$ModNbr}</td>
-<td>$ModuleList->{HwVersion}{$ModNbr}</td>
-<td>$ModuleList->{FwVersion}{$ModNbr}</td>
-<td>$ModuleList->{SwVersion}{$ModNbr}</td>
-<td>$ModuleList->{SerialNumberString}{$ModNbr}</td>
+<td $sty">$ModNbr</td>
+<td $sty">$ModuleList->{Model}{$ModNbr}</td>
+<td $sty">$ModuleList->{Description}{$ModNbr}</td>
+<td $sty">$ModuleList->{HwVersion}{$ModNbr}</td>
+<td $sty">$ModuleList->{FwVersion}{$ModNbr}</td>
+<td $sty">$ModuleList->{SwVersion}{$ModNbr}</td>
+<td $sty">$ModuleList->{SerialNumberString}{$ModNbr}</td>
 </tr>
 MBS2
+#"
     $NbrModulesWritten++;
   }
   my $SwitchCell = <<FULLMOD;
