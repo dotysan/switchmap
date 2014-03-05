@@ -112,7 +112,7 @@ push @LocalSwitches, 'switch2-in-building2.abc.com';
 # problem switches.
 %LocalSwitchTrunkPorts = (
                'switch1'  => [ "ge-0/1/0", "ge-0/1/1" ],
-               'switch2'  => [ "xe-0/0/1 ],
+               'switch2'  => [ "xe-0/0/1" ],
              );
 
 # If you have HP OpenView and you've set $GetSwitchListFromHpOpenView
