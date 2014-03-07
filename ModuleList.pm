@@ -14,6 +14,7 @@ package ModuleList;
 use strict;
 use Log::Log4perl qw(get_logger);
 #use Data::Dumper; #dbg
+use feature qw(switch);
 
 
 sub new {
@@ -63,12 +64,35 @@ sub GetPrintableModuleList ($) {
 }
 
 
+sub GetModuleHtmlStyle ($$) {
+  my $this   = shift;
+  my $ModNbr = shift;
+
+  my $HtmlStyle= 'style="';
+  given($this->{Description}{$ModNbr}) {
+    when('StackWise master'   ) { $HtmlStyle.= 'color:#006000;font-weight:bold;'; } # bold green
+    when('StackWise notMember') { $HtmlStyle.= 'color:#c0c0c0;'; } # grey
+    # otherwise 'StackWise Member' normal text color (black)
+  }
+  given(CiscoMibConstants::getCiscoModuleStatus($this->{ModuleStatus}{$ModNbr})) {
+    when('majorFault') { $HtmlStyle.= 'background-color:#ffd0d0;"'; } # red (absent stack member)
+    when('minorFault') { $HtmlStyle.= 'background-color:#ffc000;"'; } # orange
+    when('other'     ) { $HtmlStyle.= 'background-color:#ffff00;"'; } # yellow
+    default            { $HtmlStyle.= '"'; } # otherwise ok(2) normal background color (white)
+  }
+
+  return $HtmlStyle;
+}
+
+
 sub WriteHtmlModuleTable ($$$) {
   my $this       = shift;
   my $SwitchName = shift;
   my $ModNbr     = shift;
   my $logger = get_logger('log3');
   $logger->debug("called, SwitchName = \"$SwitchName\", ModNbr = $ModNbr");
+
+   my $HtmlStyle= GetModuleHtmlStyle($this, $ModNbr);
 
   $logger->debug("returning");
   return <<MODULE;
@@ -82,12 +106,12 @@ sub WriteHtmlModuleTable ($$$) {
 </tr>
 <tr><td colspan="6" height="2" bgcolor="black"></td></tr>
 <tr>
-<td>$this->{Model}{$ModNbr}</td>
-<td>$this->{Description}{$ModNbr}</td>
-<td>$this->{SerialNumberString}{$ModNbr}</td>
-<td>$this->{HwVersion}{$ModNbr}</td>
-<td>$this->{SwVersion}{$ModNbr}</td>
-<td>$this->{FwVersion}{$ModNbr}</td>
+<td $HtmlStyle>$this->{Model}{$ModNbr}</td>
+<td $HtmlStyle>$this->{Description}{$ModNbr}</td>
+<td $HtmlStyle>$this->{SerialNumberString}{$ModNbr}</td>
+<td $HtmlStyle>$this->{HwVersion}{$ModNbr}</td>
+<td $HtmlStyle>$this->{SwVersion}{$ModNbr}</td>
+<td $HtmlStyle>$this->{FwVersion}{$ModNbr}</td>
 </tr>
 </table></center>
 MODULE

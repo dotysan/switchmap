@@ -84,10 +84,9 @@ sub ModuleDetailTable ($) {
 }
 
 
-sub GetSectionName ($$$) {
+sub GetSectionName ($$) {
   my $Switch             = shift;
   my $PortName           = shift;
-  my $SwitchModelHashRef = shift;
 
   my $SectionName = '';
   my $Port = $Switch->{Ports}{$PortName};
@@ -104,7 +103,8 @@ sub GetSectionName ($$$) {
         # have to check if the module actually exists here to avoid
         # showing modules that don't really exist.  The "model" hash
         # uses module numbers as keys.
-        if (exists $SwitchModelHashRef->{$1}) {
+        my $ModuleList= $Switch->{ModuleList};
+        if (exists $ModuleList->{Model}{$1} && $ModuleList->{Description}{$1} ne 'StackWise notMember') {
           $SectionName = "Module $1";
         } else {
           $SectionName = 'Removed Ports';
@@ -134,7 +134,6 @@ sub BuildSections ($$$) {
   $logger->debug("called");
 
   %Sections = ();
-  my $SwitchModelHashRef = $Switch->{ModuleList}{Model};
 
   foreach my $PortName (Portically::PortSort keys %{$Switch->{Ports}}) {
     $logger->debug("PortName = \"$PortName\"");
@@ -144,7 +143,7 @@ sub BuildSections ($$$) {
                                            $MacIpAddrRef,
                                            $MacHostNameRef,
                                            SwitchUtils::GetDirectoryDepth($Constants::SwitchesDirectory));
-    my $SectionName = GetSectionName($Switch, $PortName, $SwitchModelHashRef);
+    my $SectionName = GetSectionName($Switch, $PortName);
     if (!exists $Sections{$SectionName}) {
       my @Rows = ();
       $Sections{$SectionName} = [ @Rows ];
