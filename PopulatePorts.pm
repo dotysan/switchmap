@@ -604,7 +604,7 @@ sub GetPortToDuplex ($$$$$$) {
       my $DuplexString = ReadableDot3StatsDuplexStatusStrings($DuplexCode);
       my $PortName = $$IfToIfNameRef{$ifNbr};
 #      $logger->debug("setting \$DuplexRef->{$PortName} to $DuplexString from dot3StatsDuplexStatus table");
-      $DuplexRef->{$PortName} = $DuplexString;
+      $DuplexRef->{$PortName} = $DuplexString if $PortName;
     }
   }
 
