@@ -344,6 +344,35 @@ $SecondsPerMonth = 30 * $SecondsPerDay;  # number of seconds in a 30-day month
              'cdpCachePlatform' => '1.3.6.1.4.1.9.9.23.1.2.1.1.8',
 
              #
+             # LLDP-MIB::lldpRemTable:
+             #  1.0.8802.1.1 = iso.std.iso8802.ieee802dot1.ieee802dot1mibs
+             #  2.1.4        = lldpMIB.lldpObjects.lldpRemoteSystemsData
+             #  1.1.8        = lldpRemTable.lldpRemEntry.lldpRemPortDesc
+
+            #'lldpRemChassisId' => '1.0.8802.1.1.2.1.4.1.1.5',
+            #'lldpRemPortId'    => '1.0.8802.1.1.2.1.4.1.1.7',
+             'lldpRemPortDesc'  => '1.0.8802.1.1.2.1.4.1.1.8',
+             'lldpRemSysName'   => '1.0.8802.1.1.2.1.4.1.1.9',
+            #'lldpRemSysDesc'   => '1.0.8802.1.1.2.1.4.1.1.10',
+             # but beware the above table doesn't use
+             # fIndex.cdpCacheDeviceIndex the same as CDP cache, but
+             # instead it uses lldpRemTimeMark.dot1dBasePort.lldpRemIndex
+             # which can be mapped back with:
+             # CISCO-IF-EXTENSION-MIB::cieIfDot1dBaseMappingTable
+             #  1.3.6.1.4.1.9 = iso.org.dod.internet.private.enterprises.cisco
+             #  9.276.1.5     = ciscoMgmt.ciscoIfExtensionMIB.ciscoIfExtensionMIBObjects.ciscoIfExtDot1dBaseMapping
+             #  1.1.1         = cieIfDot1dBaseMappingTable.cieIfDot1dBaseMappingEntry.cieIfDot1dBaseMappingPort
+             'cieIfDot1dBaseMappingPort' => '1.3.6.1.4.1.9.9.276.1.5.1.1.1',
+
+             # LLDP-MIB::lldpRemManAddrTable
+             #  1.0.8802.1.1 = iso.std.iso8802.ieee802dot1.ieee802dot1mibs
+             #  2.1.4        = lldpMIB.lldpObjects.lldpRemoteSystemsData
+             #  2.1.3        = lldpRemManAddrTable.lldpRemManAddrEntry.lldpRemManAddrIfSubtype
+             'lldpRemManAddrIfSubtype' => '1.0.8802.1.1.2.1.4.2.1.3', # which remote snmp table has the interface ID
+            #'lldpRemManAddrIfId'      => '1.0.8802.1.1.2.1.4.2.1.4', # the interface ID to lookup in the remote table above
+            #'lldpRemManAddrOID'       => '1.0.8802.1.1.2.1.4.2.1.5', # ignore value always 0.0 (.ccitt.zeroDotZero); we only care about the IP addr in the key
+
+             #
              # CISCO-STACKWISE-MIB::cswSwitchInfoTable:
              #  1.3.6.1.4.1.9.9.500 = iso.org.dod.internet.private.enterprises.cisco.ciscoMgmt.ciscoStackWiseMIB
              #  1.2.1.1             = ciscoStackWiseMIBObjects.cswStackInfo.cswSwitchInfoTable.cswSwitchInfoEntry

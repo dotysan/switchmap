@@ -18,6 +18,11 @@ sub new {
   $this->{AuxiliaryVlanNbr} = 0;
   $this->{CdpCacheDeviceId} = '';
   $this->{CdpCachePlatform} = '';
+  $this->{lldpRemSysName} = '';
+ #$this->{lldpRemChassisId} = '';
+ #$this->{lldpRemPortId} = '';
+  $this->{lldpRemPortDesc} = '';
+  $this->{lldpRemManAddr} = '';
   $this->{DaysInactive} = 0;
   $this->{Duplex} = 'unknown';
   $this->{EtherChannel} = 0;    # reference to an EtherChannel object, if this port is etherchanneled

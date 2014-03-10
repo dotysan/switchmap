@@ -531,7 +531,7 @@ sub HtmlPortTableHeader () {
 <caption><strong>Port information</strong></caption>
 <tr class = "tblHead">
 <th colspan="7">information about the port itself</th>
-<th colspan="5">information about what the port is connected to</th>
+<th colspan="6">information about what the port is connected to</th>
 </tr>
 <tr class="tblHead">
 <th>Port</th>
@@ -541,13 +541,14 @@ sub HtmlPortTableHeader () {
 <th>Speed</th>
 <th>Duplex</th>
 <th>Port Label</th>
-<th>What<br>(via CDP)</th>
+<th>CDP</th>
+<th>LLDP</th>
 <th>MAC Address</th>
 <th>NIC<br>Manufacturer</th>
 <th>IP Address</th>
 <th>DNS Name</th>
 </tr>
-<tr><td colspan="12" height="2" bgcolor="black"></td></tr>
+<tr><td colspan="13" height="2" bgcolor="black"></td></tr>
 HPTH
 }
 
@@ -639,6 +640,27 @@ sub GetWhatViaCdp ($$) {
   return $WhatViaCdp;
 }
 
+sub GetWhatViaLLDP ($) {
+  my $Port                           = shift;
+  my $logger = get_logger('log5');
+  $logger->debug("called");
+
+  my $WhatViaLLDP = '&nbsp;';
+  if ($Port->{lldpRemSysName} ne '') {
+    my $lldpRemSysName= $Port->{lldpRemSysName};
+    $lldpRemSysName=~ s{^([^.]+\.[^.]*)\..*}{$1};
+    $WhatViaLLDP= '<nobr>' . $lldpRemSysName . '</nobr>';
+    if ($Port->{lldpRemPortDesc} ne '') {
+      my $lldpRemPortDesc= $Port->{lldpRemPortDesc};
+      $lldpRemPortDesc=~ s{^([A-Z][-A-Za-z])[-A-Za-z]+([0-9/]+)$}{$1$2}; # shorten IOS long names
+      $WhatViaLLDP.= '<br>' . $lldpRemPortDesc;
+    }
+    $WhatViaLLDP.= ' '. $Port->{lldpRemManAddr} if ($Port->{lldpRemManAddr} ne '');
+  }
+
+  $logger->debug("returning");
+  return $WhatViaLLDP;
+}
 
 sub GetPortLabel ($) {
   my $Port  = shift;
@@ -739,6 +761,8 @@ sub GetPortConnectedToCells ($$$$$) {
   if (($State eq 'Active') or $Port->{IsVirtual}) {
     my $WhatViaCdp = GetWhatViaCdp($Port, $DepthBelowDestinationDirectory);
     $PortConnectedToCells .= "<td$RowSpan2>$WhatViaCdp</td>\n"; # what (via CDP) column
+    my $WhatViaLLDP = GetWhatViaLLDP($Port);
+    $PortConnectedToCells .= "<td$RowSpan2>$WhatViaLLDP</td>\n";
     if ($Port->{IsTrunking} and # if the port is trunking and
         !$Port->{IsConnectedToIpPhone}) { #    it's not a phone port
       my $trunkString = 'trunk port';
@@ -798,7 +822,7 @@ sub GetPortConnectedToCells ($$$$$) {
     }
   } else {                      # else state is not active
     my $Color = ($State eq 'Disabled') ? "class=cellWarning" : '';
-    $PortConnectedToCells .= "<td colspan=\"5\" $Color>&nbsp;</td>";
+    $PortConnectedToCells .= "<td colspan=\"6\" $Color>&nbsp;</td>";
   }
   $PortConnectedToCells .= "\n</tr>\n";
 

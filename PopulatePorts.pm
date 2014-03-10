@@ -1158,6 +1158,57 @@ sub PopulatePorts ($$) {
   }
   #  SwitchUtils::DbgPrintHash('cdpCachePlatform', \%CdpCachePlatform);
 
+  my %cieIfDot1dBaseMappingPort;
+  my ( %lldpRemSysName
+    #, %lldpRemSysDesc
+    #, %lldpRemChassisId
+    #, %lldpRemPortId
+     , %lldpRemPortDesc
+     , %lldpRemManAddr
+    );
+  $status = SwitchUtils::GetSnmpTable($Session,
+                                      'cieIfDot1dBaseMappingPort',
+                                      $Constants::INTERFACE,
+                                      \%cieIfDot1dBaseMappingPort);
+  if ($status) {
+    $status = SwitchUtils::GetSnmpTable($Session,
+                                      'lldpRemSysName',
+                                      $Constants::TABLE_ROW,
+                                      \%lldpRemSysName);
+#    SwitchUtils::DbgPrintHash('lldpRemSysName', \%lldpRemSysName);
+    %lldpRemSysName= map { my $key = $_;
+                               exists $lldpRemSysName{$cieIfDot1dBaseMappingPort{$key}}
+                           ? ($key => $lldpRemSysName{$cieIfDot1dBaseMappingPort{$key}})
+                           : ()
+                         } keys %cieIfDot1dBaseMappingPort;
+
+    $status = SwitchUtils::GetSnmpTable($Session,
+                                      'lldpRemPortDesc',
+                                      $Constants::TABLE_ROW,
+                                      \%lldpRemPortDesc);
+    %lldpRemPortDesc= map { my $key = $_;
+                               exists $lldpRemPortDesc{$cieIfDot1dBaseMappingPort{$key}}
+                           ? ($key => $lldpRemPortDesc{$cieIfDot1dBaseMappingPort{$key}})
+                           : ()
+                         } keys %cieIfDot1dBaseMappingPort;
+
+    # any column in this table will do, since we only use the oid/index
+    my $lldpRemManAddrTable= $Session->get_table($Constants::SnmpOids{'lldpRemManAddrIfSubtype'});
+    %lldpRemManAddr= map { # see LLDP-MIB: we exact both the key and value out of the oid/index
+        /\.(?<lldpRemLocalPortNum>\d+)\.\d+\.\d+\.\d+\.(?<lldpRemManAddr>\d+\.\d+\.\d+\.\d+)$/;
+        ( $+{lldpRemLocalPortNum} => $+{lldpRemManAddr} ) } keys %{$lldpRemManAddrTable};
+    # for now, we assume a single RemManAddr per local port; but beware LLDP allows many
+#    SwitchUtils::DbgPrintHash('lldpRemManAddr', \%lldpRemManAddr);
+
+    # hope it's safe to overload/rebuild %lldpRemManAddr on the fly...
+    %lldpRemManAddr= map { my $key = $_;
+                               exists $lldpRemManAddr{$cieIfDot1dBaseMappingPort{$key}}
+                           ? ($key => $lldpRemManAddr{$cieIfDot1dBaseMappingPort{$key}})
+                           : ()
+                         } keys %cieIfDot1dBaseMappingPort;
+#    SwitchUtils::DbgPrintHash('lldpRemManAddr', \%lldpRemManAddr);
+  }
+
   #
   # Get the table that maps ports to VLANs.
   #
@@ -1243,6 +1294,9 @@ sub PopulatePorts ($$) {
     $$PortsRef{$PortName} = $Port;
     $Port->{CdpCacheDeviceId}     = $CdpCacheDeviceId{$IfNbr}        if exists $CdpCacheDeviceId{$IfNbr};
     $Port->{CdpCachePlatform}     = SwitchUtils::trim($CdpCachePlatform{$IfNbr}) if exists $CdpCachePlatform{$IfNbr};
+    $Port->{lldpRemSysName}       = $lldpRemSysName{$IfNbr}          if exists $lldpRemSysName{$IfNbr};
+    $Port->{lldpRemPortDesc}      = $lldpRemPortDesc{$IfNbr}         if exists $lldpRemPortDesc{$IfNbr};
+    $Port->{lldpRemManAddr}       = $lldpRemManAddr{$IfNbr}          if exists $lldpRemManAddr{$IfNbr};
     $Port->{Duplex}               = $Duplex{$PortName}               if exists $Duplex{$PortName};
     $Port->{IdleSince}            = $IdleSince{$PortName}            if exists $IdleSince{$PortName};
     $Port->{IfNbr}                = $IfNbr;
