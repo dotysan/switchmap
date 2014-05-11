@@ -138,12 +138,12 @@ sub UnusedByVlanIndex ($) {
   $logger->debug("called");
 
   my $i = 0;
-  my $columns = 3;
+  my $columns = 4;
   my $NbrVlans = keys %$VlansRef;
   my $rows = ($NbrVlans / $columns) + 1;
   my @OutList = ();
   my $RetVal .= "<h3>Unused Ports Organized By Vlan</h3>\n" .
-    "<table class=\"noborder\" width=800>\n";
+    "<table class=\"noborder\" width=1200>\n";
   foreach my $VlanNbr (sort {$a <=> $b} keys %$VlansRef) {
     my $Vlan = $$VlansRef{$VlanNbr};
     my $VlanName= $ThisSite::VlanNames[$VlanNbr]? $ThisSite::VlanNames[$VlanNbr] : '[unknown]';

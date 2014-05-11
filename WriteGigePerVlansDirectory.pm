@@ -24,7 +24,7 @@ sub WriteGigePerVlansIndexFile ($$) {
     exit;
   };
   print BYVLANINDEXFILE SwitchUtils::HtmlHeader("Gigabit Ports Organized By VLAN");
-  print BYVLANINDEXFILE "<table class=\"noborder\" width=800>\n";
+  print BYVLANINDEXFILE "<table class=\"noborder\" width=1200>\n";
 
   my $i = 0;
   my $columns = 4;

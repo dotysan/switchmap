@@ -16,14 +16,14 @@ sub WriteVlansIndexFile (%) {
     exit;
   };
   print BYVLANINDEXFILE SwitchUtils::HtmlHeader("VLANs");
-  print BYVLANINDEXFILE "<table class=\"noborder\" width=1000>\n";
+  print BYVLANINDEXFILE "<table class=\"noborder\" width=1200>\n";
 
   #
   # Arrange the list of VLAN pages in a table, 5 per row so that
   # a reasonable number fit on the page without needing to scroll.
   #
   my $i = 0;
-  my $columns = 5;
+  my $columns = 4;
   my @VlanNbrs = keys %$VlanPortCount; # an unsorted list of VLAN names, perhaps including "0"
   my $rows = ($#VlanNbrs / $columns) + 1;
   my @RowBody = ();
