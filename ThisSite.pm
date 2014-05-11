@@ -129,11 +129,9 @@ push @LocalSwitches, 'switch2-in-building2.abc.com';
 # same identity across all switches. If you have separate vtp domains
 # with different uses for a given vlan ID, this totally breaks down.
 # TODO: Fetch these from authoritative VTP servers in each domain.
-@VlanDescrs= ();
-# Note we cannot use VlanNames variable because upstream author wrongly
-# used it to stort vlan numbers/IDs. [sigh]
-#$VlanDescrs[0]= '[none]';
-$VlanDescrs[1]= 'default [spare]';
+@VlanNames= ();
+#$VlanNames[0]= '[none]';
+$VlanNames[1]= 'default [spare]';
 
 # If you use the same community string for all your routers and
 # switches, leave $CmstrFile as an empty string and set the $Community

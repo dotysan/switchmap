@@ -24,16 +24,16 @@ sub WriteVlansIndexFile (%) {
   #
   my $i = 0;
   my $columns = 5;
-  my @VlanNames = keys %$VlanPortCount; # an unsorted list of VLAN names, perhaps including "0"
-  my $rows = ($#VlanNames / $columns) + 1;
+  my @VlanNbrs = keys %$VlanPortCount; # an unsorted list of VLAN names, perhaps including "0"
+  my $rows = ($#VlanNbrs / $columns) + 1;
   my @RowBody = ();
-  foreach my $VlanName ( sort {$a<=>$b} @VlanNames ) {
-    my $VlanDescr= $ThisSite::VlanDescrs[$VlanName]? $ThisSite::VlanDescrs[$VlanName] : '[unknown]';
-    $logger->debug("VlanName = \"$VlanName\"");
-    my $PortCount = $VlanPortCount->{$VlanName};
-    my $VlanDisplayName = ($VlanName == 0) ? "no VLAN" : "$VlanName: $VlanDescr";
+  foreach my $VlanNbr ( sort {$a<=>$b} @VlanNbrs ) {
+    my $VlanName= $ThisSite::VlanNames[$VlanNbr]? $ThisSite::VlanNames[$VlanNbr] : '[unknown]';
+    $logger->debug("VlanNbr = \"$VlanNbr\"");
+    my $PortCount = $VlanPortCount->{$VlanNbr};
+    my $VlanDisplayName = ($VlanNbr == 0) ? "no VLAN" : "$VlanNbr: $VlanName";
     $RowBody[$i] .= <<RBODY;
-<td><a href="vlan$VlanName.html">$VlanDisplayName</a>&nbsp;<small>(</small>$PortCount<small>&nbsp;ports)</small></td>
+<td><a href="vlan$VlanNbr.html">$VlanDisplayName</a>&nbsp;<small>(</small>$PortCount<small>&nbsp;ports)</small></td>
 RBODY
     $i = 0 if ++$i >= $rows;
   }
@@ -57,14 +57,14 @@ sub WriteVlansDataFiles ($) {
   $logger->debug("called");
 
   foreach my $VlanNbr (sort keys %$VlanBodiesRef ) {
-    my $VlanDescr= $ThisSite::VlanDescrs[$VlanNbr]? $ThisSite::VlanDescrs[$VlanNbr] : '[unknown]';
+    my $VlanName= $ThisSite::VlanNames[$VlanNbr]? $ThisSite::VlanNames[$VlanNbr] : '[unknown]';
     my $ByVlanFileName = File::Spec->catfile($Constants::VlansDirectory, 'vlan' . $VlanNbr . '.html');
     $logger->debug("writing $ByVlanFileName");
     open VLANHTMLFILE, ">$ByVlanFileName" or do {
       $logger->fatal("Couldn't open $ByVlanFileName for writing, $!");
       exit;
     };
-    my $Title = ($VlanNbr == 0) ? "Ports in no VLAN" : "Ports in VLAN $VlanNbr: $VlanDescr";
+    my $Title = ($VlanNbr == 0) ? "Ports in no VLAN" : "Ports in VLAN $VlanNbr: $VlanName";
     print VLANHTMLFILE SwitchUtils::HtmlHeader($Title);
     my $VlanBodies = $$VlanBodiesRef{$VlanNbr};
     foreach my $SwitchName (sort keys %$VlanBodies) {

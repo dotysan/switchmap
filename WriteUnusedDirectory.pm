@@ -55,7 +55,7 @@ sub WriteUnusedByVlanFiles ($) {
 
   foreach my $VlanNbr (sort {$a <=> $b} keys %$VlansRef) {
     my $Vlan = $$VlansRef{$VlanNbr};
-    my $VlanDescr= $ThisSite::VlanDescrs[$VlanNbr]? $ThisSite::VlanDescrs[$VlanNbr] : '[unknown]';
+    my $VlanName= $ThisSite::VlanNames[$VlanNbr]? $ThisSite::VlanNames[$VlanNbr] : '[unknown]';
     next if $Vlan->{NbrUnusedPorts} == 0; # skip this VLAN if it has no unused ports on any switch
     my $UbvFileName = 'vlan' . $VlanNbr . '-unused.html';
     my $UnusedByVlanFileName = File::Spec->catfile($Constants::UnusedDirectory, $UbvFileName);
@@ -64,7 +64,7 @@ sub WriteUnusedByVlanFiles ($) {
       $logger->fatal("Couldn't open $UnusedByVlanFileName for writing, $!");
       exit;
     };
-    print UBVFILE SwitchUtils::HtmlHeader("Unused Ports (idle for > $ThisSite::UnusedAfter days) on VLAN $VlanNbr: $VlanDescr");
+    print UBVFILE SwitchUtils::HtmlHeader("Unused Ports (idle for > $ThisSite::UnusedAfter days) on VLAN $VlanNbr: $VlanName");
     foreach my $SwitchName (sort keys %{$Vlan->{Switches}}) {
       print UBVFILE "<h2>$SwitchName</h2>";
       print UBVFILE "<table class=\"UnusedPorts\">\n";
@@ -146,13 +146,13 @@ sub UnusedByVlanIndex ($) {
     "<table class=\"noborder\" width=800>\n";
   foreach my $VlanNbr (sort {$a <=> $b} keys %$VlansRef) {
     my $Vlan = $$VlansRef{$VlanNbr};
-    my $VlanDescr= $ThisSite::VlanDescrs[$VlanNbr]? $ThisSite::VlanDescrs[$VlanNbr] : '[unknown]';
+    my $VlanName= $ThisSite::VlanNames[$VlanNbr]? $ThisSite::VlanNames[$VlanNbr] : '[unknown]';
 
     if ($Vlan->{NbrUnusedPorts} == 0) {
-      $OutList[$i] .= "<td>$VlanNbr: $VlanDescr&nbsp;<small>(</small>0<small>&nbsp;unused)</small></td>";
+      $OutList[$i] .= "<td>$VlanNbr: $VlanName&nbsp;<small>(</small>0<small>&nbsp;unused)</small></td>";
     } else {
       my $UbvFileName = 'vlan' . $VlanNbr . '-unused.html';
-      $OutList[$i] .= "<td><a href=\"$UbvFileName\">$VlanNbr: $VlanDescr</a>&nbsp;<small>(</small>$Vlan->{NbrUnusedPorts}<small>&nbsp;unused)</small></td>";
+      $OutList[$i] .= "<td><a href=\"$UbvFileName\">$VlanNbr: $VlanName</a>&nbsp;<small>(</small>$Vlan->{NbrUnusedPorts}<small>&nbsp;unused)</small></td>";
     }
     $i = 0 if ++$i >= $rows;
   }
