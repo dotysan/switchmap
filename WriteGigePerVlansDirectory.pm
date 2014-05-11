@@ -24,7 +24,7 @@ sub WriteGigePerVlansIndexFile ($$) {
     exit;
   };
   print BYVLANINDEXFILE SwitchUtils::HtmlHeader("Gigabit Ports Organized By VLAN");
-  print BYVLANINDEXFILE "<table class=\"noborder\" width=640>\n";
+  print BYVLANINDEXFILE "<table class=\"noborder\" width=800>\n";
 
   my $i = 0;
   my $columns = 4;
@@ -33,10 +33,11 @@ sub WriteGigePerVlansIndexFile ($$) {
   my @RowBody = ();
   foreach my $VlanNbr ( sort {$a<=>$b} keys %$VlansRef ) {
     my $Vlan = $$VlansRef{$VlanNbr};
+    my $VlanDescr= $ThisSite::VlanDescrs[$VlanNbr]? $ThisSite::VlanDescrs[$VlanNbr] : '[unknown]';
     my $PortCount = (exists $GigePortsPerVlanRef->{$VlanNbr}) ? $GigePortsPerVlanRef->{$VlanNbr} : 0;
     $RowBody[$i] .= <<RBODY;
 <td>
-<a href="vlan$VlanNbr.html">VLAN$VlanNbr</a>&nbsp;<small>(</small>$PortCount<small>&nbsp;ports)</small>
+<a href="vlan$VlanNbr.html">$VlanNbr: $VlanDescr</a>&nbsp;<small>(</small>$PortCount<small>&nbsp;ports)</small>
 </td>
 RBODY
     $i = 0 if ++$i >= $rows;

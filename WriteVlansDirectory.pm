@@ -16,7 +16,7 @@ sub WriteVlansIndexFile (%) {
     exit;
   };
   print BYVLANINDEXFILE SwitchUtils::HtmlHeader("VLANs");
-  print BYVLANINDEXFILE "<table class=\"noborder\" width=800>\n";
+  print BYVLANINDEXFILE "<table class=\"noborder\" width=1000>\n";
 
   #
   # Arrange the list of VLAN pages in a table, 5 per row so that
@@ -28,9 +28,10 @@ sub WriteVlansIndexFile (%) {
   my $rows = ($#VlanNames / $columns) + 1;
   my @RowBody = ();
   foreach my $VlanName ( sort {$a<=>$b} @VlanNames ) {
+    my $VlanDescr= $ThisSite::VlanDescrs[$VlanName]? $ThisSite::VlanDescrs[$VlanName] : '[unknown]';
     $logger->debug("VlanName = \"$VlanName\"");
     my $PortCount = $VlanPortCount->{$VlanName};
-    my $VlanDisplayName = ($VlanName == 0) ? "no VLAN" : "VLAN$VlanName";
+    my $VlanDisplayName = ($VlanName == 0) ? "no VLAN" : "$VlanName: $VlanDescr";
     $RowBody[$i] .= <<RBODY;
 <td><a href="vlan$VlanName.html">$VlanDisplayName</a>&nbsp;<small>(</small>$PortCount<small>&nbsp;ports)</small></td>
 RBODY
@@ -56,13 +57,14 @@ sub WriteVlansDataFiles ($) {
   $logger->debug("called");
 
   foreach my $VlanNbr (sort keys %$VlanBodiesRef ) {
+    my $VlanDescr= $ThisSite::VlanDescrs[$VlanNbr]? $ThisSite::VlanDescrs[$VlanNbr] : '[unknown]';
     my $ByVlanFileName = File::Spec->catfile($Constants::VlansDirectory, 'vlan' . $VlanNbr . '.html');
     $logger->debug("writing $ByVlanFileName");
     open VLANHTMLFILE, ">$ByVlanFileName" or do {
       $logger->fatal("Couldn't open $ByVlanFileName for writing, $!");
       exit;
     };
-    my $Title = ($VlanNbr == 0) ? "Ports in no VLAN" : "Ports in VLAN $VlanNbr";
+    my $Title = ($VlanNbr == 0) ? "Ports in no VLAN" : "Ports in VLAN $VlanNbr: $VlanDescr";
     print VLANHTMLFILE SwitchUtils::HtmlHeader($Title);
     my $VlanBodies = $$VlanBodiesRef{$VlanNbr};
     foreach my $SwitchName (sort keys %$VlanBodies) {
