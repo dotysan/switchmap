@@ -27,8 +27,12 @@ $MAX_WARNING_MESSAGE_DEPTH = 1;
 # These values are used in Entity MIBs.
 #
 $CHASSIS = 3;
+$CONTAINER = 5;
+$POWSUP  = 6;
+$FAN     = 7;
+$SENSOR  = 8;
 $MODULE  = 9;
-$PORT    = 10;
+$ENTPORT = 10;
 
 # These values are used in the POWER-ETHERNET MIB.
 
@@ -378,6 +382,7 @@ $SecondsPerMonth = 30 * $SecondsPerDay;  # number of seconds in a 30-day month
              #  1.2.1.1             = ciscoStackWiseMIBObjects.cswStackInfo.cswSwitchInfoTable.cswSwitchInfoEntry
              'cswSwitchRole'       => '1.3.6.1.4.1.9.9.500.1.2.1.1.3',
              'cswSwitchSwPriority' => '1.3.6.1.4.1.9.9.500.1.2.1.1.4',
+             'cswSwitchState'      => '1.3.6.1.4.1.9.9.500.1.2.1.1.6',
 
              #
              # 1.3.6.1.2.1 = iso.org.dod.internet.mgmt.mib-2

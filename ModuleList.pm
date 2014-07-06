@@ -50,7 +50,7 @@ sub GetModuleModel ($) {
 sub GetPrintableModuleList ($) {
   my $this = shift;
 
-  my $retval = "module Description Model FW HW SW Serial\n";
+  my $retval = "mod Description         Model                FW           HW  SW           Serial      Role      Status\n";
   foreach my $ModNbr (sort {$a <=> $b} keys %{$this->{Description}}) {
     my $type   = $this->{Description}       {$ModNbr} ? $this->{Description}       {$ModNbr} : 'n/a';
     my $model  = $this->{Model}             {$ModNbr} ? $this->{Model}             {$ModNbr} : 'n/a';
@@ -58,7 +58,15 @@ sub GetPrintableModuleList ($) {
     my $hw     = $this->{HwVersion}         {$ModNbr} ? $this->{HwVersion}         {$ModNbr} : 'n/a';
     my $sw     = $this->{SwVersion}         {$ModNbr} ? $this->{SwVersion}         {$ModNbr} : 'n/a';
     my $serial = $this->{SerialNumberString}{$ModNbr} ? $this->{SerialNumberString}{$ModNbr} : 'n/a';
-    $retval .= "$ModNbr $type $model $fw $hw $sw $serial\n";
+    my $role   = $this->{Role}              {$ModNbr} ?
+#                                                       $this->{Role}              {$ModNbr} : 'n/a';
+                  CiscoMibConstants::getCiscoSwitchRole($this->{Role}              {$ModNbr}): 'n/a';
+    my $status = $this->{ModuleStatus}      {$ModNbr} ?
+#                                                       $this->{ModuleStatus}      {$ModNbr} : 'n/a';
+                CiscoMibConstants::getCiscoModuleStatus($this->{ModuleStatus}      {$ModNbr}): 'n/a';
+# TODO: regression test Role/ModuleStatus on any non-StackWise switch
+    $retval .= sprintf("%3d %-19s %-20s %-12s %-3s %-12s %-11s %-9s %-10s\n",
+      $ModNbr, $type, $model, $fw, $hw, $sw, $serial, $role, $status);
   }
   return $retval;
 }
@@ -182,6 +190,7 @@ sub GetModuleDataFromStackMib ($$) {
                                       'moduleStatus',
                                       $Constants::INTERFACE,
                                       $this->{ModuleStatus});
+
   # Get the serial numbers of all the modules
   $status = SwitchUtils::GetSnmpTable($Session,
                                       'moduleSerialNumberString',
@@ -353,6 +362,25 @@ sub GetModuleDataFromEntityMib($$) {
     return 0;
   }
 
+  my %cswSwitchRole;
+  $status = SwitchUtils::GetSnmpTable($Session,
+                                      'cswSwitchRole',
+                                      $Constants::INTERFACE,
+                                      \%cswSwitchRole);
+  if (!$status) {          # if we couldn't reach it or it's real slow
+    $logger->debug($Session->hostname() . ": couldn't get cswSwitchRole, returning 0");
+    return 0;
+  }
+# StackWise-480 doesn't define a CISCO-STACK-MIB::moduleStatus. Non-
+# members are removed from the CISCO-STACKWISE-MIB::cswSwitchInfoTable.
+# So we can simply set all members to cswSwitchState=ready(4) which is
+# _not_ equivalent to CISCO-STACK-MIB::moduleStatus=ok(2).
+#  my %cswSwitchState;
+#  $status = SwitchUtils::GetSnmpTable($Session,
+#                                      'cswSwitchState',
+#                                      $Constants::INTERFACE,
+#                                      \%cswSwitchState);
+
   my %entPhysicalModelName;
   $status = SwitchUtils::GetSnmpTable($Session,
                                       'entPhysicalModelName',
@@ -367,11 +395,17 @@ sub GetModuleDataFromEntityMib($$) {
 
   my $NumberModules = 0;
   foreach my $entRowNbr (sort keys %entPhysicalClass) {
-    #    $logger->debug("entRowNbr $entRowNbr");
     my $Class = $entPhysicalClass{$entRowNbr};
+    if ($Class != $Constants::ENTPORT &&
+        $Class != $Constants::SENSOR &&
+        $Class != $Constants::FAN &&
+        $Class != $Constants::POWSUP &&
+        $Class != $Constants::CONTAINER) {
+        $logger->debug("entRowNbr:$entRowNbr $entPhysicalName{$entRowNbr}");
+    }
     if ($Class == $Constants::MODULE) {
       my $Parent = $entPhysicalContainedIn{$entRowNbr};
-      #      $logger->debug("Parent  == \"$Parent\"");
+      $logger->debug("Parent  == \"$Parent\" $entPhysicalName{$Parent}");
       if (($entPhysicalName{$Parent} =~ /^Physical Slot (\d+)$/) or
           ($entPhysicalName{$Parent} =~ /^Slot (\d+)$/)) {
         $NumberModules++;
@@ -386,6 +420,27 @@ sub GetModuleDataFromEntityMib($$) {
           $entPhysicalFirmwareRev{$entRowNbr} : 'unknown';
         $this->{SerialNumberString}{$SlotNbr} = ($entPhysicalSerialNum{$entRowNbr} ne '') ?
           $entPhysicalSerialNum{$entRowNbr} : 'unknown';
+      }
+      # C3850 (StackWise-480) switch stacks running IOS-XE don't appear
+      # to support the enterprises.cisco.workgroup.ciscoStackMIB. So we
+      # must instead glean the stack members directly from the standard
+      # mib-2.entityMIB.entityMIBObjects.entityPhysical.entPhysicalTable.
+      elsif ($entPhysicalName{$Parent} =~ /^Switch (\d+)$/) {
+        $NumberModules++;
+        my $SlotNbr = $1;
+        $logger->debug("entRowNbr: $entRowNbr SlotNbr: $SlotNbr");
+        $this->{Model}{$SlotNbr}              = $entPhysicalModelName{$Parent};
+        $this->{Description}{$SlotNbr}        = $entPhysicalDescr{$Parent};
+        $this->{HwVersion}{$SlotNbr}          = ($entPhysicalHardwareRev{$Parent} ne '') ?
+          $entPhysicalHardwareRev{$Parent} : 'unknown';
+        $this->{FwVersion}{$SlotNbr}          = ($entPhysicalFirmwareRev{$Parent} ne '') ?
+          $entPhysicalFirmwareRev{$Parent} : 'unknown';
+        $this->{SwVersion}{$SlotNbr}          = ($entPhysicalSoftwareRev{$Parent} ne '') ?
+          $entPhysicalSoftwareRev{$Parent} : 'unknown';
+        $this->{SerialNumberString}{$SlotNbr} = ($entPhysicalSerialNum{$Parent} ne '') ?
+          $entPhysicalSerialNum{$Parent} : 'unknown';
+        $this->{Role}{$SlotNbr}               = $cswSwitchRole{$Parent};
+        $this->{ModuleStatus}{$SlotNbr}       = 2; # fake CISCO-STACK-MIB::moduleStatus=ok(2)
       }
     }
   }
@@ -420,6 +475,7 @@ sub PopulateModuleList ($$) {
     $NbrModules = GetModuleDataFromEntityMib($this, $Session);
   }
 
+# $logger->debug($this->GetPrintableModuleList);
   $logger->debug("returning, got information about $NbrModules modules");
   return $NbrModules;
 }

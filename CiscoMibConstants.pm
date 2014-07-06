@@ -29,7 +29,8 @@ my %CiscoModuleStatus = (
 my %CiscoSwitchRoles = (
   1, 'master',
   2, 'member',
-  3, 'notMember'
+  3, 'notMember',
+  4, 'standby'
 );
 
 
